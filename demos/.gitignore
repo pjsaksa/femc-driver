@@ -1,0 +1,9 @@
+/babysitter
+/babysitter-program
+/babysitter.log
+/babysitter.pid
+/endian
+/main
+/pid/
+/pid/*
+/write2socket

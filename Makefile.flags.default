@@ -1,0 +1,11 @@
+# Femc Driver
+# Copyright (C) 2015-2018 Pauli Saksa
+#
+# This file is in the public domain.
+
+.SILENT:
+
+CONFIGURATION_FLAGS =
+EXTRA_COMPILE_FLAGS =-O2
+EXTRA_LINK_FLAGS    =-s
+EXTRA_SHARED_LINK_FLAGS =

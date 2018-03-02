@@ -1,0 +1,5 @@
+*.[ado]
+a.out
+/Makefile.flags
+
+/dns-service

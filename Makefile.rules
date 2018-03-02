@@ -1,0 +1,66 @@
+# Femc Driver
+# Copyright (C) 2005-2018 Pauli Saksa
+#
+# Licensed under The MIT License, see file LICENSE.txt in this source tree.
+
+.PHONY : FORCE
+FORCE: ;
+
+#
+# scripts to generate intermediate files
+#
+
+include $(FEMC_DRIVER_ROOT)/Makefile.rules-awk
+
+#
+# generating intermediate files
+#
+
+%.gen.s : %.inc inc-file.S
+	@echo -e 'GEN:\t' $@
+	$(CXX) -E -o $@ $(CPPFLAGS) "-DSymbolName=$(notdir $(<:.inc=))" "-DFileName=$<" inc-file.S
+
+#
+# compiling
+#
+
+%.o : %.cc
+	@echo -e 'COMPILE:' $@
+	$(CXX) -std=gnu++11 -c -o $@ $(CPPFLAGS) $(CXXFLAGS) $<
+
+%.o : %.c
+	@echo -e 'COMPILE:' $@
+	$(CC) -std=gnu99 -c -o $@ $(CPPFLAGS) $(CFLAGS) $<
+
+%.o : %.gen.s
+	@echo -e 'COMPILE:' $@
+	$(CXX) -std=gnu++11 -c -o $@ $(CPPFLAGS) $(CXXFLAGS) $<
+
+%.class : %.java
+	@echo -e 'COMPILE:' $@
+	javac $^
+
+#
+# linking
+#
+
+lib%.so : %.o
+	@echo -e 'LINK:\t' $@
+	$(CXX) -std=gnu++11 -o $@ -shared $(LDFLAGS) $^ $($@_link_with)
+
+#
+# dependencies
+#
+
+%.o.d : %.cc
+	@$(CXX) -o $@ -MM -MT "$@ $(@:.o.d=.o)" $(CPPFLAGS) $(@:.o.d=.cc)
+
+%.o.d : %.c
+	@$(CC) -o $@ -MM -MT "$@ $(@:.o.d=.o)" $(CPPFLAGS) $(@:.o.d=.c)
+
+ifneq ($(strip $(OBJECTS)),)
+ifneq ($(MAKECMDGOALS),clean)
+$(OBJECTS) : Makefile $(FEMC_DRIVER_ROOT)/Makefile.rules $(FEMC_DRIVER_ROOT)/Makefile.flags
+-include $(OBJECTS:.o=.o.d)
+endif
+endif

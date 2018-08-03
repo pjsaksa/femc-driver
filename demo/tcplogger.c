@@ -38,7 +38,7 @@ typedef struct
 }
     tcplogger_service;
 
-static bool tcplogger_read_input(tcplogger_service *, int);
+static bool tcplogger_read_input(void *, int);
 
 //
 
@@ -49,7 +49,7 @@ static void init_tcplogger_service(tcplogger_service *service, int fd)
 
     fdd_init_service_input(&service->local_input,
                            service,
-                           (fdd_notify_func)&tcplogger_read_input);
+                           &tcplogger_read_input);
     fdd_add_input(&service->local_input, fd);
 }
 
@@ -80,7 +80,7 @@ static int server_connect_pending =0;
 static int server_fd =-1;
 static fdd_service_input *server_service =0;
 
-static void tcplogger_close_server(void* UNUSED(is_error), int UNUSED(dummy2))
+static bool tcplogger_close_server(void* UNUSED(is_error), int UNUSED(dummy2))
 {
     fdd_remove_input(server_service, server_fd);
 
@@ -88,6 +88,8 @@ static void tcplogger_close_server(void* UNUSED(is_error), int UNUSED(dummy2))
     server_fd =-1;
     free(server_service);
     server_service =0;
+
+    return true;
 }
 
 // *********************************************************
@@ -121,8 +123,12 @@ static void send_data(tcplogger_service *service)
     }
 }
 
-static void connected(tcplogger_service *service, int fd, int connect_errno)
+static bool connected(void *service_v,
+                      int fd,
+                      int connect_errno)
 {
+    tcplogger_service *service = (tcplogger_service *) service_v;
+
     server_connect_pending =0;
 
     if (fd>=0 && !connect_errno)
@@ -130,7 +136,7 @@ static void connected(tcplogger_service *service, int fd, int connect_errno)
         server_service =malloc(sizeof(fdd_service_input));
         fdd_init_service_input(server_service,
                                server_service,
-                               (fdd_notify_func)&tcplogger_close_server);
+                               &tcplogger_close_server);
         fdd_add_input(server_service, fd);
 
         server_fd =fd;
@@ -143,6 +149,8 @@ static void connected(tcplogger_service *service, int fd, int connect_errno)
 
         free_tcplogger_service(service);
     }
+
+    return true;
 }
 
 static void process_input(tcplogger_service *service)   // context
@@ -159,7 +167,10 @@ static void process_input(tcplogger_service *service)   // context
 
         server_connect_pending =1;
 
-        if (fdu_lazy_connect(&sa, (fdu_notify_connect_func)connected, service, 0) != 0)
+        if (fdu_lazy_connect(&sa,
+                             &connected,
+                             service,
+                             0) != 0)
         {
             server_connect_pending =0;
             free_tcplogger_service(service);
@@ -169,8 +180,10 @@ static void process_input(tcplogger_service *service)   // context
 
 // *********************************************************
 
-static bool tcplogger_read_input(tcplogger_service *service, int fd)
+static bool tcplogger_read_input(void *service_v, int fd)
 {
+    tcplogger_service *service = (tcplogger_service *) service_v;
+
     // read until no more input (read returns 0)
 
     const int bytes =read(fd,

@@ -163,8 +163,10 @@ static ntp_guard_service *ntp_guard_new_service(void)
 
 // *********************************************************
 
-static void ntp_guard_poller(ntp_guard_service *service, int pid)
+static bool ntp_guard_poller(void *service_v, int pid)
 {
+    ntp_guard_service *service = (ntp_guard_service *) service_v;
+
     if (pid
         && waitpid(pid, 0, WNOHANG) == pid)
     {
@@ -217,10 +219,10 @@ static void ntp_guard_poller(ntp_guard_service *service, int pid)
                     }
                 }
 
-                fdd_add_timer((fdd_notify_func)ntp_guard_poller,
+                fdd_add_timer(&ntp_guard_poller,
                               service, pid,
                               NTP_POLL_FAST_INTERVAL, 0);
-                return;
+                return true;
             }
 
             pid =ntp_guard_start_daemon(ipfile_exists ? NTP_IP : NTP_NEXUS);
@@ -283,10 +285,11 @@ static void ntp_guard_poller(ntp_guard_service *service, int pid)
 
     //
 
-    fdd_add_timer((fdd_notify_func)ntp_guard_poller,
+    fdd_add_timer(&ntp_guard_poller,
                   service,
                   pid,
                   NTP_POLL_INTERVAL, 0);
+    return true;
 }
 
 // *********************************************************
@@ -295,7 +298,7 @@ void ntp_guard_start(void)
 {
     fprintf(FDD_ACTIVE_LOGFILE, "starting NTP-guard\n");
 
-    fdd_add_timer((fdd_notify_func)ntp_guard_poller,
+    fdd_add_timer(&ntp_guard_poller,
                   ntp_guard_new_service(),
                   0,
                   NTP_POLL_INIT_INTERVAL, 0);

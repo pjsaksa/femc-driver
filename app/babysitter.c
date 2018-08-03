@@ -307,8 +307,11 @@ static bool read_and_handle_event(babysitter_service_t *service,
 
 // *********************************************************
 
-static bool got_file_dropped_event(babysitter_service_t *const service, const int fd)
+static bool got_file_dropped_event(void *const service_v,
+                                   const int fd)
 {
+    babysitter_service_t *const service = (babysitter_service_t *const) service_v;
+
     const fde_node_t *ectx =0;
 
     return (ectx =fde_push_context(this_error_context))
@@ -316,8 +319,11 @@ static bool got_file_dropped_event(babysitter_service_t *const service, const in
         && fde_safe_pop_context(this_error_context, ectx);
 }
 
-static bool got_file_grabbed_event(babysitter_service_t *const service, const int fd)
+static bool got_file_grabbed_event(void *const service_v,
+                                   const int fd)
 {
+    babysitter_service_t *const service = (babysitter_service_t *const) service_v;
+
     const fde_node_t *ectx =0;
 
     return (ectx =fde_push_context(this_error_context))
@@ -431,8 +437,8 @@ babysitter_public_t *new_babysitter_service(babysitter_callback alive,
 
     //
 
-    fdd_init_service_input(&service->grab_service, service, (fdd_notify_func)got_file_grabbed_event);
-    fdd_init_service_input(&service->drop_service, service, (fdd_notify_func)got_file_dropped_event);
+    fdd_init_service_input(&service->grab_service, service, &got_file_grabbed_event);
+    fdd_init_service_input(&service->drop_service, service, &got_file_dropped_event);
 
     if (fdd_add_input(&service->grab_service, grab_fd)
         && fdd_add_input(&service->drop_service, drop_fd)

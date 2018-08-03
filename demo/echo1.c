@@ -40,7 +40,7 @@ typedef struct {
 
 //
 
-static bool echo1_input(echo1_service_t *, int);
+static bool echo1_input(void *, int);
 
 // *********************************************************
 
@@ -72,8 +72,10 @@ static bool free_echo1_service(echo1_service_t *service)
 
 // *********************************************************
 
-static bool echo1_output(echo1_service_t *service, int fd)
+static bool echo1_output(void *service_v, int fd)
 {
+    echo1_service_t *service = (echo1_service_t *) service_v;
+
     const fde_node_t *ectx;
     if (!(ectx =fde_push_context(this_error_context)))
         return false;
@@ -134,8 +136,10 @@ static bool echo1_output(echo1_service_t *service, int fd)
 
 // *********************************************************
 
-static bool echo1_input(echo1_service_t *service, int fd)
+static bool echo1_input(void *service_v, int fd)
 {
+    echo1_service_t *service = (echo1_service_t *) service_v;
+
     const fde_node_t *ectx;
     if (!(ectx =fde_push_context(this_error_context)))
         return false;
@@ -221,8 +225,8 @@ static bool new_echo1_service(void *UNUSED(context), int fd)
     service->can_write =false;
     service->input_closed =false;
 
-    fdd_init_service_input(&service->input_service, service, (fdd_notify_func)echo1_input);
-    fdd_init_service_output(&service->output_service, service, (fdd_notify_func)echo1_output);
+    fdd_init_service_input (&service->input_service,  service, &echo1_input);
+    fdd_init_service_output(&service->output_service, service, &echo1_output);
 
     if (!fdd_add_input(&service->input_service, fd)
         || !fdd_add_output(&service->output_service, fd))

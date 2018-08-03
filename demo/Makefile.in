@@ -32,8 +32,3 @@ $(DEMO_BINARIES) : libfemc-driver.a
 # generic rules
 
 $(DEMO_OBJECTS) : demo/Makefile.in
-
-# file-specific flags
-
-demo/ntp_guard.o : CFLAGS+=-Wno-unused-result -Wno-error=cast-function-type
-demo/tcplogger.o : CFLAGS+=-Wno-error=cast-function-type

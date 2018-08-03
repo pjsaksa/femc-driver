@@ -92,8 +92,10 @@ const unsigned int sizeof_fdu_bufio_service =sizeof(fdu_bufio_service);
 #define NOTIFY      (service->notify)
 #define SIZE        (service->buffer.size)
 
-static bool fdu_bufio_got_input(fdu_bufio_service *service, int fd)
+static bool fdu_bufio_got_input(void *service_v, int fd)
 {
+    fdu_bufio_service *service = (fdu_bufio_service *) service_v;
+
     const fde_node_t *ectx;
     if (!(ectx =fde_push_context(fdu_context_bufio)))
         return false;
@@ -159,8 +161,10 @@ static bool fdu_bufio_got_input(fdu_bufio_service *service, int fd)
     return fde_safe_pop_context(fdu_context_bufio, ectx);
 }
 
-static bool fdu_bufio_got_output(fdu_bufio_service *service, int fd)
+static bool fdu_bufio_got_output(void *service_v, int fd)
 {
+    fdu_bufio_service *service = (fdu_bufio_service *) service_v;
+
     const fde_node_t *ectx;
     if (!(ectx =fde_push_context(fdu_context_bufio)))
         return false;
@@ -514,7 +518,7 @@ fdu_bufio_buffer *fdu_new_input_bufio_inplace(const int fd,
 
     fdd_init_service_input(&service->input_service,
                            service,
-                           (fdd_notify_func)fdu_bufio_got_input);
+                           &fdu_bufio_got_input);
 
     if (fdd_add_input(&service->input_service, fd)) {
         if (fde_pop_context(fdu_context_bufio, ectx))
@@ -582,7 +586,7 @@ fdu_bufio_buffer *fdu_new_output_bufio_inplace(const int fd,
 
     fdd_init_service_output(&service->output_service,
                             service,
-                            (fdd_notify_func)fdu_bufio_got_output);
+                            &fdu_bufio_got_output);
 
     if (fdd_add_output(&service->output_service, fd)) {
         if (fde_pop_context(fdu_context_bufio, ectx))
@@ -606,8 +610,11 @@ typedef struct {
     void *context;
 } fdu_pending_connect_data;
 
-static bool fdu_pending_connect_callback(fdu_pending_connect_data *pcd, int fd)
+static bool fdu_pending_connect_callback(void *pcd_v,
+                                         int fd)
 {
+    fdu_pending_connect_data *pcd = (fdu_pending_connect_data *) pcd_v;
+
     const fde_node_t *ectx;
     if (!(ectx =fde_push_context(fdu_context_connect)))
         return false;
@@ -663,8 +670,8 @@ bool fdu_pending_connect(int fd, fdu_notify_connect_func callback, void *callbac
     }
 
     fdd_init_service_output(&pcd->oserv,
-                            pcd,                                                // context
-                            (fdd_notify_func)fdu_pending_connect_callback);     // notify
+                            pcd,                                // context
+                            &fdu_pending_connect_callback);     // notify
     pcd->connect_func   =callback;
     pcd->context        =callback_context;
 
@@ -1044,8 +1051,11 @@ typedef struct {
     void *callback_context;
 } aac_service_t;
 
-static bool fdu_aac_new_connection(aac_service_t *service, int server_fd)
+static bool fdu_aac_new_connection(void *service_v,
+                                   int server_fd)
 {
+    aac_service_t *service = (aac_service_t *) service_v;
+
     const fde_node_t *ectx;
     if (!(ectx =fde_push_context(fdu_context_aac)))
         return false;
@@ -1105,7 +1115,7 @@ bool fdu_auto_accept_connection(int server_fd,
 
     fdd_init_service_input(&service->listening_service,
                            service,
-                           (fdd_notify_func)&fdu_aac_new_connection);
+                           &fdu_aac_new_connection);
 
     if (!fdd_add_input(&service->listening_service, server_fd)) {
         free(service);

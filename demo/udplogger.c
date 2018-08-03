@@ -155,9 +155,11 @@ static void process_input(udplogger_service *service)   // context
 
 // *********************************************************
 
-static void udplogger_set_address(udplogger_service *service,   // context
+static void udplogger_set_address(void *service_v,              // context
                                   const char *new_address)      // ip address, or 0
 {
+    udplogger_service *service = (udplogger_service *) service_v;
+
     if (!service) return;
     if (service->dns_request_status != usd_BeingDone) return;
 
@@ -180,8 +182,10 @@ static void udplogger_set_address(udplogger_service *service,   // context
 
 // *****
 
-static bool udplogger_read_input(udplogger_service *service, int fd)
+static bool udplogger_read_input(void *service_v, int fd)
 {
+    udplogger_service *service = (udplogger_service *) service_v;
+
     // read until no more input (read returns 0)
 
     const int bytes =read(fd, &service->input_buffer[service->input_length], InputBufferSize-service->input_length);
@@ -210,7 +214,7 @@ static bool udplogger_read_input(udplogger_service *service, int fd)
             {
                 *colon =0;
                 if (fdu_dnsserv_lookup(service->input_buffer,
-                                       (fdu_dnsserv_notify_func)udplogger_set_address,
+                                       &udplogger_set_address,
                                        service) == 0)
                 {
                     service->dns_request_status = usd_BeingDone;
@@ -281,7 +285,7 @@ static bool udplogger_new_connection(void* UNUSED(service), int fd)
 
     fdd_init_service_input(&new_service->local_input,
                            new_service,
-                           (fdd_notify_func)&udplogger_read_input);
+                           &udplogger_read_input);
     fdd_add_input(&new_service->local_input, new_socket);
 
     return true;

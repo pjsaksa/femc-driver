@@ -59,7 +59,7 @@ struct two_way_route_t_ {
     one_way_route_t back;
 };
 
-static bool route_output(one_way_route_t *, int fd);
+static bool route_output(void *, int fd);
 static bool route_close_output(one_way_route_t *, int fd, int error);
 
 // *********************************************************
@@ -234,8 +234,10 @@ static bool route_close_output(one_way_route_t *this, int fd, int error)
 
 // *********************************************************
 
-static bool route_input(one_way_route_t *r1, int fd)
+static bool route_input(void *r1_v, int fd)
 {
+    one_way_route_t *r1 = (one_way_route_t *) r1_v;
+
     const fde_node_t *ectx;
     if (!(ectx =fde_push_context(this_error_context)))
         return false;
@@ -286,8 +288,10 @@ static bool route_input(one_way_route_t *r1, int fd)
     return fde_safe_pop_context(this_error_context, ectx);
 }
 
-static bool route_output(one_way_route_t *r1, int fd)
+static bool route_output(void *r1_v, int fd)
 {
+    one_way_route_t *r1 = (one_way_route_t *) r1_v;
+
     const fde_node_t *ectx;
     if (!(ectx =fde_push_context(this_error_context)))
         return false;
@@ -352,8 +356,12 @@ static bool route_output(one_way_route_t *r1, int fd)
 
 // *********************************************************
 
-static bool route_connected(two_way_route_t *rr, int fd, int connect_errno)
+static bool route_connected(void *rr_v,
+                            int fd,
+                            int connect_errno)
 {
+    two_way_route_t *rr = (two_way_route_t *) rr_v;
+
     const fde_node_t *ectx;
     if (!(ectx =fde_push_context(this_error_context)))
         return false;
@@ -388,8 +396,11 @@ static bool route_connected(two_way_route_t *rr, int fd, int connect_errno)
 
 // *********************************************************
 
-static void route_dns_ready(two_way_route_t *rr, const char *address)
+static void route_dns_ready(void *rr_v,
+                            const char *address)
 {
+    two_way_route_t *rr = (two_way_route_t *) rr_v;
+
     const fde_node_t *ectx;
     if (!(ectx =fde_push_context(this_error_context)))
         return;
@@ -430,7 +441,10 @@ static void route_dns_ready(two_way_route_t *rr, const char *address)
         return;
     }
 
-    if (!fdu_lazy_connect(&sa, (fdu_notify_connect_func)route_connected, rr, 0))
+    if (!fdu_lazy_connect(&sa,
+                          &route_connected,
+                          rr,
+                          0))
     {
         fdu_safe_close(rr->there.input_fd);
         free(rr);
@@ -469,15 +483,15 @@ static bool new_two_way_route(int fd, route_listening_service_t *listening_servi
 
     rr->there.filled =rr->back.filled =0;
 
-    fdd_init_service_input(&rr->there.input_service, &rr->there, (fdd_notify_func)&route_input);
-    fdd_init_service_output(&rr->there.output_service, &rr->there, (fdd_notify_func)&route_output);
-    fdd_init_service_input(&rr->back.input_service, &rr->back, (fdd_notify_func)&route_input);
-    fdd_init_service_output(&rr->back.output_service, &rr->back, (fdd_notify_func)&route_output);
+    fdd_init_service_input (&rr->there.input_service,  &rr->there, &route_input);
+    fdd_init_service_output(&rr->there.output_service, &rr->there, &route_output);
+    fdd_init_service_input (&rr->back.input_service,   &rr->back,  &route_input);
+    fdd_init_service_output(&rr->back.output_service,  &rr->back,  &route_output);
 
     //
 
     if (fdu_dnsserv_lookup(listening_service->target_address,
-                           (fdu_dnsserv_notify_func)route_dns_ready,
+                           &route_dns_ready,
                            rr))
     {
         return fde_safe_pop_context(this_error_context, ectx);
@@ -491,8 +505,11 @@ static bool new_two_way_route(int fd, route_listening_service_t *listening_servi
 
 // *********************************************************
 
-static bool route_new_connection(route_listening_service_t *listening_service, int fd)
+static bool route_new_connection(void *listening_service_v,
+                                 int fd)
 {
+    route_listening_service_t *listening_service = (route_listening_service_t *) listening_service_v;
+
     const fde_node_t *ectx;
     if (!(ectx =fde_push_context(this_error_context)))
         return 0;
@@ -534,7 +551,9 @@ static bool new_route_listening_service(int fd,
         return false;
     }
 
-    fdd_init_service_input(&service->input_service, service, (fdd_notify_func)&route_new_connection);
+    fdd_init_service_input(&service->input_service,
+                           service,
+                           &route_new_connection);
 
     service->target_address =target_address;
     service->target_port    =target_port;

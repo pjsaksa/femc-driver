@@ -14,13 +14,13 @@
 #include <errno.h>
 #include <stdio.h>
 
-enum { this_error_context =fd_demo_context_date };
+enum { this_error_context = fd_demo_context_date };
 
 //
 
 static bool date_new_connection(void* UNUSED(context), int fd)
 {
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(this_error_context)))
         return false;
     //
@@ -28,11 +28,11 @@ static bool date_new_connection(void* UNUSED(context), int fd)
     enum { buffer_size = 20 };
 
     unsigned char date_buf[buffer_size];
-    size_t bytes =0;
+    size_t bytes = 0;
 
     {
         struct tm tm;
-        time_t now =time(0);
+        time_t now = time(0);
 
         if (now < 0) {
             fde_push_stdlib_error("time", errno);
@@ -40,9 +40,9 @@ static bool date_new_connection(void* UNUSED(context), int fd)
             return false;
         }
 
-        bytes =strftime((char *)date_buf, buffer_size,
-                        "%m%d%H%M%Y.%S\n",
-                        localtime_r(&now, &tm));
+        bytes = strftime((char*) date_buf, buffer_size,
+                         "%m%d%H%M%Y.%S\n",
+                         localtime_r(&now, &tm));
 
         if (!bytes) {
             fde_push_stdlib_error("strftime", errno);
@@ -51,25 +51,25 @@ static bool date_new_connection(void* UNUSED(context), int fd)
         }
 
         if (bytes >= buffer_size)
-            bytes =buffer_size-1;
+            bytes = buffer_size-1;
 
-        date_buf[bytes] =0;
+        date_buf[bytes] = 0;
     }
 
     //
 
-    const bool write_ok =fdu_safe_write(fd, date_buf, date_buf+bytes);
+    const bool write_ok = fdu_safe_write(fd, date_buf, date_buf+bytes);
 
     return fdu_safe_close(fd)
         && write_ok
         && fde_pop_context(this_error_context, ectx);
 }
 
-// *********************************************************
+// ------------------------------------------------------------
 
 bool date_start(unsigned short requested_port)
 {
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     int server_fd;
 
     fprintf(FDD_ACTIVE_LOGFILE, "starting date in port %hu\n", requested_port);

@@ -25,22 +25,22 @@
 enum { UNIX_PATH_MAX = 108 };
 #endif
 
-// *********************************************************
+// ------------------------------------------------------------
 
-fdu_memory_area init_memory_area(unsigned char *begin, const uint32_t size)
+fdu_memory_area init_memory_area(unsigned char* begin, const uint32_t size)
 {
     return (fdu_memory_area){begin, begin+size};
 }
 
-fdu_memory_area init_memory_area_cont(unsigned char **beginp, const uint32_t size)
+fdu_memory_area init_memory_area_cont(unsigned char** beginp, const uint32_t size)
 {
-    unsigned char *const begin =*beginp;
-    unsigned char *const end   =(*beginp)+=size;
+    unsigned char* const begin = *beginp;
+    unsigned char* const end   = (*beginp) += size;
 
     return (fdu_memory_area){begin, end};
 }
 
-/*********************************************************
+/*------------------------------------------------------------
  *
  * Buffered I/O services
  *
@@ -71,7 +71,7 @@ struct fdu_bufio_service_ {
         fdd_service_output output_service;
     };
 
-    void *context;
+    void* context;
     fdu_bufio_notify_func notify;
     fdu_bufio_close_func close;
 
@@ -79,7 +79,7 @@ struct fdu_bufio_service_ {
     unsigned int callstack;
 };
 
-const unsigned int sizeof_fdu_bufio_service =sizeof(fdu_bufio_service);
+const unsigned int sizeof_fdu_bufio_service = sizeof(fdu_bufio_service);
 
 //
 
@@ -92,11 +92,11 @@ const unsigned int sizeof_fdu_bufio_service =sizeof(fdu_bufio_service);
 #define NOTIFY      (service->notify)
 #define SIZE        (service->buffer.size)
 
-static bool fdu_bufio_got_input(void *service_v, int fd)
+static bool fdu_bufio_got_input(void* service_v, int fd)
 {
-    fdu_bufio_service *service = (fdu_bufio_service *) service_v;
+    fdu_bufio_service* service = (fdu_bufio_service*) service_v;
 
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(fdu_context_bufio)))
         return false;
     //
@@ -112,47 +112,47 @@ static bool fdu_bufio_got_input(void *service_v, int fd)
     //
 
     if (FILLED == SIZE) {
-        CAN_XFER =true;
+        CAN_XFER = true;
 
         return fdd_remove_input(&service->input_service, fd)
             && fde_pop_context(fdu_context_bufio, ectx);
     }
 
-    const int i =read(fd, &DATA[FILLED], SIZE - FILLED);
+    const int i = read(fd, &DATA[FILLED], SIZE - FILLED);
 
     if (CAN_XFER) {
-        CAN_XFER =false;
+        CAN_XFER = false;
 
         if (!fdd_add_input(&service->input_service, fd))
             return false;
     }
 
-    bool lazy_close =false;
+    bool lazy_close = false;
 
     if (i > 0) {
-        FILLED +=i;
+        FILLED += i;
 
         FDE_ASSERT_DEBUG( FILLED <= SIZE , "filled > size (2)" , false );
 
         if (NOTIFY) {
-            CALLSTACK |=bufio_cs_active;
+            CALLSTACK |= bufio_cs_active;
 
-            lazy_close =(!NOTIFY(&service->buffer, CONTEXT)
-                         || (CALLSTACK & (bufio_cs_closed | bufio_cs_freed)));
+            lazy_close = (!NOTIFY(&service->buffer, CONTEXT)
+                          || (CALLSTACK & (bufio_cs_closed | bufio_cs_freed)));
 
             CALLSTACK &= ~(bufio_cs_active | bufio_cs_closed);
         }
     }
     else if (!i) {
-        lazy_close =true;
+        lazy_close = true;
     }
     else if (errno != EINTR
              && errno != EAGAIN)
     {
         // assert: i < 0 && errno == something_serious
 
-        lazy_close =true;
-        service->close_errno =errno;
+        lazy_close = true;
+        service->close_errno = errno;
     }
 
     if (lazy_close)
@@ -161,11 +161,11 @@ static bool fdu_bufio_got_input(void *service_v, int fd)
     return fde_safe_pop_context(fdu_context_bufio, ectx);
 }
 
-static bool fdu_bufio_got_output(void *service_v, int fd)
+static bool fdu_bufio_got_output(void* service_v, int fd)
 {
-    fdu_bufio_service *service = (fdu_bufio_service *) service_v;
+    fdu_bufio_service* service = (fdu_bufio_service*) service_v;
 
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(fdu_context_bufio)))
         return false;
     //
@@ -181,48 +181,48 @@ static bool fdu_bufio_got_output(void *service_v, int fd)
     //
 
     if (!FILLED) {
-        CAN_XFER =true;
+        CAN_XFER = true;
 
         return fdd_remove_output(&service->output_service, fd)
             && fde_pop_context(fdu_context_bufio, ectx);
     }
 
-    const int i =write(fd, DATA, FILLED);
+    const int i = write(fd, DATA, FILLED);
 
     if (CAN_XFER) {
-        CAN_XFER =false;
+        CAN_XFER = false;
 
         if (!fdd_add_output(&service->output_service, fd))
             return false;
     }
 
-    bool lazy_close =false;
+    bool lazy_close = false;
 
     if (i > 0) {
         FDE_ASSERT_DEBUG( (unsigned int)i <= FILLED , "i > filled" , false );
 
-        FILLED -=i;
+        FILLED -= i;
 
         if (FILLED)
             memmove(DATA, &DATA[i], FILLED);
 
         if (NOTIFY) {
-            CALLSTACK |=bufio_cs_active;
+            CALLSTACK |= bufio_cs_active;
 
-            lazy_close =(!NOTIFY(&service->buffer, CONTEXT)
-                         || (CALLSTACK & (bufio_cs_closed | bufio_cs_freed)));
+            lazy_close = (!NOTIFY(&service->buffer, CONTEXT)
+                          || (CALLSTACK & (bufio_cs_closed | bufio_cs_freed)));
 
             CALLSTACK &= ~(bufio_cs_active | bufio_cs_closed);
         }
     }
     else if (errno == EPIPE) {
-        lazy_close =true;
+        lazy_close = true;
     }
     else if (errno != EINTR
              && errno != EAGAIN)
     {
-        lazy_close =true;
-        service->close_errno =errno;
+        lazy_close = true;
+        service->close_errno = errno;
     }
 
     if (lazy_close)
@@ -240,12 +240,12 @@ static bool fdu_bufio_got_output(void *service_v, int fd)
 #undef NOTIFY
 #undef SIZE
 
-bool fdu_bufio_touch(fdu_bufio_buffer *buffer)
+bool fdu_bufio_touch(fdu_bufio_buffer* buffer)
 {
-    fdu_bufio_service *service;
+    fdu_bufio_service* service;
 
     if (!buffer
-        || !(service =buffer->service)
+        || !(service = buffer->service)
         || (service->type != bufio_input
             && service->type != bufio_output))
     {
@@ -260,9 +260,9 @@ bool fdu_bufio_touch(fdu_bufio_buffer *buffer)
     if (!buffer->can_xfer)
         return true;
 
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
 
-    if (!(ectx =fde_push_context(fdu_context_bufio)))
+    if (!(ectx = fde_push_context(fdu_context_bufio)))
         return false;
 
     switch (service->type) {
@@ -281,12 +281,12 @@ bool fdu_bufio_touch(fdu_bufio_buffer *buffer)
     return fde_safe_pop_context(fdu_context_bufio, ectx);
 }
 
-void fdu_bufio_close(fdu_bufio_buffer *buffer)
+void fdu_bufio_close(fdu_bufio_buffer* buffer)
 {
-    fdu_bufio_service *service;
+    fdu_bufio_service* service;
 
     if (!buffer
-        || !(service =buffer->service)
+        || !(service = buffer->service)
         || buffer->fd < 0)      // already closed
     {
         return;
@@ -297,15 +297,15 @@ void fdu_bufio_close(fdu_bufio_buffer *buffer)
                 "invalid service type" , );
 
     if (CALLSTACK & bufio_cs_active) {
-        CALLSTACK |=bufio_cs_closed;
+        CALLSTACK |= bufio_cs_closed;
         return;
     }
 
-    const int fd =buffer->fd;
+    const int fd = buffer->fd;
 
-    buffer->fd =-1;
+    buffer->fd = -1;
 
-    const fde_node_t *ectx =fde_push_context(fdu_context_bufio);
+    const fde_node_t* ectx = fde_push_context(fdu_context_bufio);
 
     if (!buffer->can_xfer) {
         switch (service->type) {
@@ -316,11 +316,11 @@ void fdu_bufio_close(fdu_bufio_buffer *buffer)
 
     //
 
-    CALLSTACK |=bufio_cs_active;
+    CALLSTACK |= bufio_cs_active;
 
     service->close(&service->buffer, service->context, fd, service->close_errno);
 
-    const bool lazy_free =(CALLSTACK & bufio_cs_freed);
+    const bool lazy_free = (CALLSTACK & bufio_cs_freed);
 
     CALLSTACK &= ~(bufio_cs_active | bufio_cs_freed);
 
@@ -335,18 +335,18 @@ void fdu_bufio_close(fdu_bufio_buffer *buffer)
         fde_safe_pop_context(fdu_context_bufio, ectx);
 }
 
-void fdu_bufio_free(fdu_bufio_buffer *buffer)
+void fdu_bufio_free(fdu_bufio_buffer* buffer)
 {
-    fdu_bufio_service *service;
+    fdu_bufio_service* service;
 
     if (!buffer
-        || !(service =buffer->service))
+        || !(service = buffer->service))
     {
         return;
     }
 
     if (CALLSTACK & bufio_cs_active) {
-        CALLSTACK |=bufio_cs_freed;
+        CALLSTACK |= bufio_cs_freed;
         return;
     }
 
@@ -356,15 +356,15 @@ void fdu_bufio_free(fdu_bufio_buffer *buffer)
         free(service);
     }
     else {
-        CALLSTACK |=bufio_cs_freed;
+        CALLSTACK |= bufio_cs_freed;
         fdu_bufio_close(buffer);       
     }
 }
 
 #undef CALLSTACK
 
-unsigned int fdu_bufio_transfer(fdu_bufio_buffer *dst,
-                                fdu_bufio_buffer *src)
+unsigned int fdu_bufio_transfer(fdu_bufio_buffer* dst,
+                                fdu_bufio_buffer* src)
 {
     if (!dst
         || !src)
@@ -372,9 +372,9 @@ unsigned int fdu_bufio_transfer(fdu_bufio_buffer *dst,
         return 0;
     }
 
-    const unsigned int offer =src->filled;
-    const unsigned int space =dst->size - dst->filled;
-    const unsigned int bytes =(offer < space) ? offer : space;
+    const unsigned int offer = src->filled;
+    const unsigned int space = dst->size - dst->filled;
+    const unsigned int bytes = (offer < space) ? offer : space;
 
     if (!bytes)
         return 0;
@@ -383,8 +383,8 @@ unsigned int fdu_bufio_transfer(fdu_bufio_buffer *dst,
            src->data,
            bytes);
 
-    dst->filled +=bytes;
-    src->filled -=bytes;
+    dst->filled += bytes;
+    src->filled -= bytes;
 
     if (src->filled)
         memmove(src->data, &src->data[bytes], src->filled);
@@ -392,53 +392,17 @@ unsigned int fdu_bufio_transfer(fdu_bufio_buffer *dst,
     return bytes;
 }
 
-// *********************************************************
+// ------------------------------------------------------------
 
-fdu_bufio_buffer *fdu_new_input_bufio(const int fd,
+fdu_bufio_buffer* fdu_new_input_bufio(const int fd,
                                       const unsigned int size,
-                                      void *const context,
+                                      void* const context,
                                       const fdu_bufio_notify_func notify_callback,
                                       const fdu_bufio_close_func close_callback)
 {
-    const size_t total_size =sizeof_fdu_bufio_service + size;
+    const size_t total_size = sizeof_fdu_bufio_service + size;
 
-    unsigned char *const allocated =malloc(total_size);
-
-    if (!allocated) {
-        fde_push_context(fdu_context_bufio);
-        fde_push_resource_failure_id(fde_resource_memory_allocation);
-        return 0;
-    }
-
-    unsigned char *counter =allocated;
-
-    const fdu_memory_area
-        service_memory  =init_memory_area_cont(&counter, sizeof_fdu_bufio_service),
-        buffer_memory   =init_memory_area_cont(&counter, size);
-
-    fdu_bufio_buffer *const bufio
-        =fdu_new_input_bufio_inplace(fd,
-                                     service_memory,
-                                     buffer_memory,
-                                     context,
-                                     notify_callback,
-                                     close_callback);
-
-    if (!bufio)
-        free(allocated);
-
-    return bufio;
-}
-
-fdu_bufio_buffer *fdu_new_output_bufio(const int fd,
-                                       const unsigned int size,
-                                       void *const context,
-                                       const fdu_bufio_notify_func notify_callback,
-                                       const fdu_bufio_close_func close_callback)
-{
-    const size_t total_size =sizeof_fdu_bufio_service + size;
-
-    unsigned char *const allocated =malloc(total_size);
+    unsigned char* const allocated = malloc(total_size);
 
     if (!allocated) {
         fde_push_context(fdu_context_bufio);
@@ -446,14 +410,14 @@ fdu_bufio_buffer *fdu_new_output_bufio(const int fd,
         return 0;
     }
 
-    unsigned char *counter =allocated;
+    unsigned char* counter = allocated;
 
     const fdu_memory_area
-        service_memory  =init_memory_area_cont(&counter, sizeof_fdu_bufio_service),
-        buffer_memory   =init_memory_area_cont(&counter, size);
+        service_memory  = init_memory_area_cont(&counter, sizeof_fdu_bufio_service),
+        buffer_memory   = init_memory_area_cont(&counter, size);
 
-    fdu_bufio_buffer *const bufio
-        =fdu_new_output_bufio_inplace(fd,
+    fdu_bufio_buffer* const bufio
+        = fdu_new_input_bufio_inplace(fd,
                                       service_memory,
                                       buffer_memory,
                                       context,
@@ -466,15 +430,51 @@ fdu_bufio_buffer *fdu_new_output_bufio(const int fd,
     return bufio;
 }
 
-fdu_bufio_buffer *fdu_new_input_bufio_inplace(const int fd,
+fdu_bufio_buffer* fdu_new_output_bufio(const int fd,
+                                       const unsigned int size,
+                                       void* const context,
+                                       const fdu_bufio_notify_func notify_callback,
+                                       const fdu_bufio_close_func close_callback)
+{
+    const size_t total_size = sizeof_fdu_bufio_service + size;
+
+    unsigned char* const allocated = malloc(total_size);
+
+    if (!allocated) {
+        fde_push_context(fdu_context_bufio);
+        fde_push_resource_failure_id(fde_resource_memory_allocation);
+        return 0;
+    }
+
+    unsigned char* counter = allocated;
+
+    const fdu_memory_area
+        service_memory  = init_memory_area_cont(&counter, sizeof_fdu_bufio_service),
+        buffer_memory   = init_memory_area_cont(&counter, size);
+
+    fdu_bufio_buffer* const bufio
+        = fdu_new_output_bufio_inplace(fd,
+                                       service_memory,
+                                       buffer_memory,
+                                       context,
+                                       notify_callback,
+                                       close_callback);
+
+    if (!bufio)
+        free(allocated);
+
+    return bufio;
+}
+
+fdu_bufio_buffer* fdu_new_input_bufio_inplace(const int fd,
                                               const fdu_memory_area service_memory,
                                               const fdu_memory_area buffer_memory,
-                                              void *const context,
+                                              void* const context,
                                               const fdu_bufio_notify_func notify_callback,
                                               const fdu_bufio_close_func close_callback)
 {
-    const fde_node_t *ectx;
-    if (!(ectx =fde_push_context(fdu_context_bufio)))
+    const fde_node_t* ectx;
+    if (!(ectx = fde_push_context(fdu_context_bufio)))
         return 0;
     //
     if (fd < 0
@@ -488,8 +488,8 @@ fdu_bufio_buffer *fdu_new_input_bufio_inplace(const int fd,
     }
     //
 
-    const unsigned int service_size =service_memory.end - service_memory.begin;
-    const unsigned int buffer_size  =buffer_memory.end - buffer_memory.begin;
+    const unsigned int service_size = service_memory.end - service_memory.begin;
+    const unsigned int buffer_size  = buffer_memory.end - buffer_memory.begin;
 
     if (service_size < sizeof_fdu_bufio_service
         || (buffer_size
@@ -500,21 +500,21 @@ fdu_bufio_buffer *fdu_new_input_bufio_inplace(const int fd,
         return 0;
     }
 
-    fdu_bufio_service *service =(fdu_bufio_service *)service_memory.begin;
+    fdu_bufio_service* service = (fdu_bufio_service*) service_memory.begin;
 
-    service->type        =bufio_input;
-    service->context     =context;
-    service->notify      =notify_callback;
-    service->close       =close_callback;
-    service->callstack   =0;
-    service->close_errno =0;
+    service->type        = bufio_input;
+    service->context     = context;
+    service->notify      = notify_callback;
+    service->close       = close_callback;
+    service->callstack   = 0;
+    service->close_errno = 0;
 
-    service->buffer.fd       =fd;
-    service->buffer.can_xfer =false;
-    service->buffer.data     =buffer_size ? buffer_memory.begin : 0;
-    service->buffer.size     =buffer_size;
-    service->buffer.filled   =0;
-    service->buffer.service  =service;
+    service->buffer.fd       = fd;
+    service->buffer.can_xfer = false;
+    service->buffer.data     = buffer_size ? buffer_memory.begin : 0;
+    service->buffer.size     = buffer_size;
+    service->buffer.filled   = 0;
+    service->buffer.service  = service;
 
     fdd_init_service_input(&service->input_service,
                            service,
@@ -530,15 +530,15 @@ fdu_bufio_buffer *fdu_new_input_bufio_inplace(const int fd,
     return 0;
 }
 
-fdu_bufio_buffer *fdu_new_output_bufio_inplace(const int fd,
+fdu_bufio_buffer* fdu_new_output_bufio_inplace(const int fd,
                                                const fdu_memory_area service_memory,
                                                const fdu_memory_area buffer_memory,
-                                               void *const context,
+                                               void* const context,
                                                const fdu_bufio_notify_func notify_callback,
                                                const fdu_bufio_close_func close_callback)
 {
-    const fde_node_t *ectx;
-    if (!(ectx =fde_push_context(fdu_context_bufio)))
+    const fde_node_t* ectx;
+    if (!(ectx = fde_push_context(fdu_context_bufio)))
         return 0;
     //
     if (fd < 0
@@ -552,8 +552,8 @@ fdu_bufio_buffer *fdu_new_output_bufio_inplace(const int fd,
     }
     //
 
-    const unsigned int service_size =service_memory.end - service_memory.begin;
-    const unsigned int buffer_size =buffer_memory.end - buffer_memory.begin;
+    const unsigned int service_size = service_memory.end - service_memory.begin;
+    const unsigned int buffer_size  = buffer_memory.end - buffer_memory.begin;
 
     if (service_size < sizeof_fdu_bufio_service
         || (buffer_size
@@ -564,25 +564,25 @@ fdu_bufio_buffer *fdu_new_output_bufio_inplace(const int fd,
         return 0;
     }
 
-    fdu_bufio_service *service =(fdu_bufio_service *)service_memory.begin;
+    fdu_bufio_service* service = (fdu_bufio_service*) service_memory.begin;
 
     if (!service) {
         fde_push_resource_failure_id(fde_resource_memory_allocation);
         return 0;
     }
 
-    service->type       =bufio_output;
+    service->type       = bufio_output;
 
-    service->context    =context;
-    service->notify     =notify_callback;
-    service->close      =close_callback;
+    service->context    = context;
+    service->notify     = notify_callback;
+    service->close      = close_callback;
 
-    service->buffer.fd          =fd;
-    service->buffer.can_xfer    =false;
-    service->buffer.data        =buffer_size ? buffer_memory.begin : 0;
-    service->buffer.size        =buffer_size;
-    service->buffer.filled      =0;
-    service->buffer.service     =service;
+    service->buffer.fd          = fd;
+    service->buffer.can_xfer    = false;
+    service->buffer.data        = buffer_size ? buffer_memory.begin : 0;
+    service->buffer.size        = buffer_size;
+    service->buffer.filled      = 0;
+    service->buffer.service     = service;
 
     fdd_init_service_output(&service->output_service,
                             service,
@@ -598,7 +598,7 @@ fdu_bufio_buffer *fdu_new_output_bufio_inplace(const int fd,
     return 0;
 }
 
-/*********************************************************
+/*------------------------------------------------------------
  *
  * Pending connect()
  *
@@ -607,15 +607,15 @@ fdu_bufio_buffer *fdu_new_output_bufio_inplace(const int fd,
 typedef struct {
     fdd_service_output oserv;
     fdu_notify_connect_func connect_func;
-    void *context;
+    void* context;
 } fdu_pending_connect_data;
 
-static bool fdu_pending_connect_callback(void *pcd_v,
+static bool fdu_pending_connect_callback(void* pcd_v,
                                          int fd)
 {
-    fdu_pending_connect_data *pcd = (fdu_pending_connect_data *) pcd_v;
+    fdu_pending_connect_data* pcd = (fdu_pending_connect_data*) pcd_v;
 
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(fdu_context_connect)))
         return false;
 
@@ -630,7 +630,7 @@ static bool fdu_pending_connect_callback(void *pcd_v,
     //
 
     int connect_error;
-    socklen_t len =sizeof(connect_error);
+    socklen_t len = sizeof(connect_error);
 
     if (!fdd_remove_output(&pcd->oserv, fd))
         return false;
@@ -638,15 +638,15 @@ static bool fdu_pending_connect_callback(void *pcd_v,
     // check the real status of connect() ...
 
     if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &connect_error, &len) < 0) {
-        connect_error =-1;
+        connect_error = -1;
 
         fde_push_stdlib_error("getsockopt", errno);
     }
 
     // ... and return it with the given callback
 
-    fdu_notify_connect_func func =pcd->connect_func;
-    void *context =pcd->context;
+    fdu_notify_connect_func func = pcd->connect_func;
+    void* context = pcd->context;
 
     free(pcd);
 
@@ -654,15 +654,15 @@ static bool fdu_pending_connect_callback(void *pcd_v,
         && fde_safe_pop_context(fdu_context_connect, ectx);
 }
 
-bool fdu_pending_connect(int fd, fdu_notify_connect_func callback, void *callback_context)
+bool fdu_pending_connect(int fd, fdu_notify_connect_func callback, void* callback_context)
 {
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(fdu_context_connect)))
         return false;
 
     // allocate and initialize service
 
-    fdu_pending_connect_data *pcd =malloc(sizeof(fdu_pending_connect_data));
+    fdu_pending_connect_data* pcd = malloc(sizeof(fdu_pending_connect_data));
 
     if (!pcd) {
         fde_push_resource_failure_id(fde_resource_memory_allocation);
@@ -672,8 +672,8 @@ bool fdu_pending_connect(int fd, fdu_notify_connect_func callback, void *callbac
     fdd_init_service_output(&pcd->oserv,
                             pcd,                                // context
                             &fdu_pending_connect_callback);     // notify
-    pcd->connect_func   =callback;
-    pcd->context        =callback_context;
+    pcd->connect_func   = callback;
+    pcd->context        = callback_context;
 
     // start service
 
@@ -681,71 +681,72 @@ bool fdu_pending_connect(int fd, fdu_notify_connect_func callback, void *callbac
         && fde_safe_pop_context(fdu_context_connect, ectx);
 }
 
-/*********************************************************
+/*------------------------------------------------------------
  *
  * Non-blocking DNS lookup
  *
  */
 
 typedef struct fdu_dns_service_query_v1 {
-    struct fdu_dns_service_query_v1 *next;
+    struct fdu_dns_service_query_v1* next;
 
     fdu_dnsserv_notify_func notify;
-    void *context;
+    void* context;
 } fdu_dns_service_query;
 
 typedef struct {
     fdd_service_input iserv;
     int pid, fd_in, fd_out;
 
-    fdu_dns_service_query *head, *tail;
+    fdu_dns_service_query* head;
+    fdu_dns_service_query* tail;
 } fdu_dns_service;
 
-// *****
+// -----
 
-static fdu_dns_service_query *free_dns_query_nodes =0;
-static fdu_dns_service *dns_service =0;
+static fdu_dns_service_query* free_dns_query_nodes = 0;
+static fdu_dns_service* dns_service = 0;
 
-// *****
+// -----
 
-static fdu_dns_service_query *new_dns_query_node(fdu_dnsserv_notify_func notify, void *ctx)
+static fdu_dns_service_query* new_dns_query_node(fdu_dnsserv_notify_func notify, void* ctx)
 {
-    fdu_dns_service_query *node;
+    fdu_dns_service_query* node;
 
     if (!free_dns_query_nodes)
-        node =malloc(sizeof(fdu_dns_service_query));
+        node = malloc(sizeof(fdu_dns_service_query));
     else {
-        node =free_dns_query_nodes;
-        free_dns_query_nodes =free_dns_query_nodes->next;
+        node = free_dns_query_nodes;
+        free_dns_query_nodes = free_dns_query_nodes->next;
     }
 
     if (!node)
         return 0;
 
-    node->next =0;
-    node->notify =notify;
-    node->context =ctx;
+    node->next = 0;
+    node->notify = notify;
+    node->context = ctx;
 
     return node;
 }
 
-// *****
+// -----
 
-static void free_dns_query_node(fdu_dns_service_query *tbd)
+static void free_dns_query_node(fdu_dns_service_query* tbd)
 {
-    tbd->next =free_dns_query_nodes;
-    free_dns_query_nodes =tbd;
+    tbd->next = free_dns_query_nodes;
+    free_dns_query_nodes = tbd;
 }
 
-// *****
+// -----
 
 static void fdu_dns_service_shutdown(void)
 {
-    const fde_node_t *ectx =fde_push_context(fdu_context_dnsserv);
+    const fde_node_t* ectx = fde_push_context(fdu_context_dnsserv);
 
     //
 
-    const int old_pid =dns_service->pid;
+    const int old_pid = dns_service->pid;
 
     if (kill(dns_service->pid, SIGKILL) < 0)
         fde_push_stdlib_error("kill", errno);
@@ -754,8 +755,8 @@ static void fdu_dns_service_shutdown(void)
         fdd_remove_input(&dns_service->iserv, dns_service->fd_in);
 
         while (dns_service->head) {
-            fdu_dns_service_query *tbd =dns_service->head;
-            dns_service->head =dns_service->head->next;
+            fdu_dns_service_query* tbd = dns_service->head;
+            dns_service->head = dns_service->head->next;
 
             tbd->notify(tbd->context, 0);
 
@@ -767,7 +768,7 @@ static void fdu_dns_service_shutdown(void)
     fdu_safe_close(dns_service->fd_out);
 
     free(dns_service);
-    dns_service =0;
+    dns_service = 0;
 
     if (waitpid(old_pid, 0, 0) < -1)
         fde_push_stdlib_error("waitpid", errno);
@@ -776,12 +777,12 @@ static void fdu_dns_service_shutdown(void)
         fde_safe_pop_context(fdu_context_dnsserv, ectx);
 }
 
-// *****
+// -----
 
-static bool fdu_dns_service_got_answer(void *context, int fd)
+static bool fdu_dns_service_got_answer(void* context, int fd)
 {
     //
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(fdu_context_dnsserv)))
         return false;
     //
@@ -794,9 +795,9 @@ static bool fdu_dns_service_got_answer(void *context, int fd)
     enum { buffer_size = 256 };
 
     static char buffer[buffer_size];
-    static int filled =0;
+    static int filled = 0;
 
-    const int i =read(fd, buffer + filled, buffer_size - filled);
+    const int i = read(fd, buffer + filled, buffer_size - filled);
     if (i <= 0) {
         fde_push_stdlib_error("pipe", errno);
         fdu_dns_service_shutdown();
@@ -807,17 +808,17 @@ static bool fdu_dns_service_got_answer(void *context, int fd)
 
     //
 
-    char *ptr             =buffer;
-    const char *const end =buffer + filled;
+    char* ptr             = buffer;
+    const char* const end = buffer + filled;
 
-    char *entry    =0;          // start of entry
-    char *consumed =buffer;     // start of next entry
+    char* entry    = 0;          // start of entry
+    char* consumed = buffer;     // start of next entry
 
     while ((ptr =memchr(ptr, '\n', end - ptr)))
     {
-        *ptr++   =0;
-        entry    =consumed;
-        consumed =ptr;
+        *ptr++   = 0;
+        entry    = consumed;
+        consumed = ptr;
 
         if (!dns_service->head)
         {
@@ -829,14 +830,14 @@ static bool fdu_dns_service_got_answer(void *context, int fd)
 #endif
         }
 
-        fdu_dns_service_query *current =dns_service->head;
+        fdu_dns_service_query* current = dns_service->head;
 
-        fdu_dnsserv_notify_func local_notify =current->notify;
-        void *local_context =current->context;
+        fdu_dnsserv_notify_func local_notify = current->notify;
+        void* local_context = current->context;
 
-        dns_service->head =dns_service->head->next;
+        dns_service->head = dns_service->head->next;
         if (!dns_service->head) {
-            dns_service->tail =0;
+            dns_service->tail = 0;
 
             fdd_remove_input(&dns_service->iserv, dns_service->fd_in);
         }
@@ -861,18 +862,18 @@ static bool fdu_dns_service_got_answer(void *context, int fd)
     return fde_safe_pop_context(fdu_context_dnsserv, ectx);
 }
 
-// *****
+// -----
 
 static bool fdu_dns_service_start(void)
 {
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(fdu_context_dnsserv)))
         return false;
     //
 
-    int pid =0;
-    int fds_read[2] ={-1, -1};
-    int fds_write[2] ={-1, -1};
+    int pid = 0;
+    int fds_read[2] = {-1, -1};
+    int fds_write[2] = {-1, -1};
 
     // create pipes for communication
 
@@ -907,7 +908,7 @@ static bool fdu_dns_service_start(void)
         if (fdu_move_fd(fds_write[0], STDIN_FILENO)
             && fdu_move_fd(fds_read[1], STDOUT_FILENO))
         {
-            execl("./dns-service", "dns-service", (char *)0);
+            execl("./dns-service", "dns-service", (char*) 0);
         }
 
         _exit(-1);
@@ -943,7 +944,7 @@ static bool fdu_dns_service_start(void)
 
     // init dns_service struct
 
-    dns_service =malloc(sizeof(fdu_dns_service));
+    dns_service = malloc(sizeof(fdu_dns_service));
 
     if (!dns_service) {
         fde_push_resource_failure_id(fde_resource_memory_allocation);
@@ -953,23 +954,23 @@ static bool fdu_dns_service_start(void)
 
     fdd_init_service_input(&dns_service->iserv, dns_service, &fdu_dns_service_got_answer);
 
-    dns_service->head =0;
-    dns_service->tail =0;
-    dns_service->pid =pid;
-    dns_service->fd_in =fds_read[0];
-    dns_service->fd_out =fds_write[1];
+    dns_service->head   = 0;
+    dns_service->tail   = 0;
+    dns_service->pid    = pid;
+    dns_service->fd_in  = fds_read[0];
+    dns_service->fd_out = fds_write[1];
 
     return fde_safe_pop_context(fdu_context_dnsserv, ectx);
 }
 
-bool fdu_dnsserv_lookup(const char *name, fdu_dnsserv_notify_func notify, void *ctx)
+bool fdu_dnsserv_lookup(const char* name, fdu_dnsserv_notify_func notify, void* ctx)
 {
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(fdu_context_dnsserv)))
         return false;
     //
 
-    const unsigned int name_len =name ? strlen(name) : 0;
+    const unsigned int name_len = name ? strlen(name) : 0;
 
     if (!name
         || name_len <= 2
@@ -1001,9 +1002,9 @@ bool fdu_dnsserv_lookup(const char *name, fdu_dnsserv_notify_func notify, void *
     unsigned char buffer[tmp_buffer_size +1];
 
     memcpy(buffer, name, name_len);
-    buffer[name_len] ='\n';
+    buffer[name_len] = '\n';
 
-    const bool write_ok =fdu_safe_write(dns_service->fd_out, buffer, buffer + name_len + 1);
+    const bool write_ok = fdu_safe_write(dns_service->fd_out, buffer, buffer + name_len + 1);
 
     //
 
@@ -1015,7 +1016,7 @@ bool fdu_dnsserv_lookup(const char *name, fdu_dnsserv_notify_func notify, void *
 
     // create new query
 
-    fdu_dns_service_query *new_query =new_dns_query_node(notify, ctx);
+    fdu_dns_service_query* new_query = new_dns_query_node(notify, ctx);
 
     if (!new_query) {
         fde_push_resource_failure_id(fde_resource_memory_allocation);
@@ -1026,12 +1027,12 @@ bool fdu_dnsserv_lookup(const char *name, fdu_dnsserv_notify_func notify, void *
 
     if (dns_service->tail)
     {
-        dns_service->tail->next =new_query;
-        dns_service->tail =new_query;
+        dns_service->tail->next = new_query;
+        dns_service->tail = new_query;
     }
     else {
-        dns_service->head =new_query;
-        dns_service->tail =new_query;
+        dns_service->head = new_query;
+        dns_service->tail = new_query;
 
         fdd_add_input(&dns_service->iserv, dns_service->fd_in);
     }
@@ -1039,7 +1040,7 @@ bool fdu_dnsserv_lookup(const char *name, fdu_dnsserv_notify_func notify, void *
     return fde_safe_pop_context(fdu_context_dnsserv, ectx);
 }
 
-/*********************************************************
+/*------------------------------------------------------------
  *
  * Auto-accept connection (aac)
  *
@@ -1048,15 +1049,15 @@ bool fdu_dnsserv_lookup(const char *name, fdu_dnsserv_notify_func notify, void *
 typedef struct {
     fdd_service_input listening_service;
     fdd_notify_func callback;
-    void *callback_context;
+    void* callback_context;
 } aac_service_t;
 
-static bool fdu_aac_new_connection(void *service_v,
+static bool fdu_aac_new_connection(void* service_v,
                                    int server_fd)
 {
-    aac_service_t *service = (aac_service_t *) service_v;
+    aac_service_t* service = (aac_service_t*) service_v;
 
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(fdu_context_aac)))
         return false;
     //
@@ -1064,7 +1065,7 @@ static bool fdu_aac_new_connection(void *service_v,
     int new_socket;
 
  retry:
-    new_socket =accept(server_fd, 0, 0);
+    new_socket = accept(server_fd, 0, 0);
 
     if (new_socket < 0) {
         if (errno == EINTR
@@ -1087,9 +1088,9 @@ static bool fdu_aac_new_connection(void *service_v,
 
 bool fdu_auto_accept_connection(int server_fd,
                                 fdd_notify_func callback,
-                                void *callback_context)
+                                void* callback_context)
 {
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(fdu_context_aac)))
         return false;
     //
@@ -1102,7 +1103,7 @@ bool fdu_auto_accept_connection(int server_fd,
     }
     //
 
-    aac_service_t *service =malloc(sizeof(aac_service_t));
+    aac_service_t* service = malloc(sizeof(aac_service_t));
 
     if (!service) {
         fde_push_resource_failure_id(fde_resource_memory_allocation);
@@ -1110,8 +1111,8 @@ bool fdu_auto_accept_connection(int server_fd,
         return false;
     }
 
-    service->callback         =callback;
-    service->callback_context =callback_context;
+    service->callback         = callback;
+    service->callback_context = callback_context;
 
     fdd_init_service_input(&service->listening_service,
                            service,
@@ -1126,7 +1127,7 @@ bool fdu_auto_accept_connection(int server_fd,
     return fde_safe_pop_context(fdu_context_aac, ectx);
 }
 
-/*********************************************************
+/*------------------------------------------------------------
  *
  * General utilities
  *
@@ -1134,7 +1135,7 @@ bool fdu_auto_accept_connection(int server_fd,
 
 int fdu_listen_inet4(unsigned short port, unsigned int options)
 {
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(fdu_context_listen)))
         return -1;
     //
@@ -1153,9 +1154,9 @@ int fdu_listen_inet4(unsigned short port, unsigned int options)
 
     // open socket
 
-    const int socketfd =socket(PF_INET,
-                               (options & FDU_SOCKET_UDP) ? SOCK_DGRAM : SOCK_STREAM,
-                               0);
+    const int socketfd = socket(PF_INET,
+                                (options & FDU_SOCKET_UDP) ? SOCK_DGRAM : SOCK_STREAM,
+                                0);
     if (socketfd < 0) {
         fde_push_stdlib_error("socket", errno);
         return -1;
@@ -1165,7 +1166,7 @@ int fdu_listen_inet4(unsigned short port, unsigned int options)
 
     if (!(options & FDU_SOCKET_NOREUSE))
     {
-        int parameter =1;
+        int parameter = 1;
         if (setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR,
                        &parameter, sizeof(parameter)) < 0)
         {
@@ -1179,7 +1180,7 @@ int fdu_listen_inet4(unsigned short port, unsigned int options)
 
     if (options & FDU_SOCKET_BROADCAST)
     {
-        int parameter =1;
+        int parameter = 1;
         if (setsockopt(socketfd, SOL_SOCKET, SO_BROADCAST,
                        &parameter, sizeof(parameter)) < 0)
         {
@@ -1195,11 +1196,11 @@ int fdu_listen_inet4(unsigned short port, unsigned int options)
         struct sockaddr_in sa;
 
         memset(&sa, 0, sizeof(struct sockaddr_in));
-        sa.sin_family      =AF_INET;
-        sa.sin_port        =htons(port);
-        sa.sin_addr.s_addr =(options & FDU_SOCKET_LOCAL) ? htonl(INADDR_LOOPBACK) : INADDR_ANY;
+        sa.sin_family      = AF_INET;
+        sa.sin_port        = htons(port);
+        sa.sin_addr.s_addr = (options & FDU_SOCKET_LOCAL) ? htonl(INADDR_LOOPBACK) : INADDR_ANY;
 
-        if (bind(socketfd, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
+        if (bind(socketfd, (struct sockaddr*) &sa, sizeof(sa)) < 0) {
             fde_push_stdlib_error("bind", errno);
             fdu_safe_close(socketfd);
             return -1;
@@ -1224,9 +1225,9 @@ int fdu_listen_inet4(unsigned short port, unsigned int options)
     return socketfd;
 }
 
-int fdu_listen_unix(const char *path, unsigned int options)
+int fdu_listen_unix(const char* path, unsigned int options)
 {
-    const fde_node_t *ectx =0;
+    const fde_node_t* ectx = 0;
     if (!(ectx =fde_push_context(fdu_context_listen)))
         return -1;
     //
@@ -1239,9 +1240,9 @@ int fdu_listen_unix(const char *path, unsigned int options)
     }
     //
 
-    const int socketfd =socket(PF_UNIX,
-                               (options & FDU_SOCKET_UDP) ? SOCK_DGRAM : SOCK_STREAM,
-                               0);
+    const int socketfd = socket(PF_UNIX,
+                                (options & FDU_SOCKET_UDP) ? SOCK_DGRAM : SOCK_STREAM,
+                                0);
     if (socketfd < 0) {
         fde_push_stdlib_error("socket", errno);
         return -1;
@@ -1253,12 +1254,12 @@ int fdu_listen_unix(const char *path, unsigned int options)
         struct sockaddr_un sa;
 
         memset(&sa, 0, sizeof(struct sockaddr_un));
-        sa.sun_family =AF_UNIX;
+        sa.sun_family = AF_UNIX;
 
         strncpy(sa.sun_path, path, UNIX_PATH_MAX);
-        sa.sun_path[UNIX_PATH_MAX-1] =0;
+        sa.sun_path[UNIX_PATH_MAX-1] = 0;
 
-        if (bind(socketfd, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
+        if (bind(socketfd, (struct sockaddr*) &sa, sizeof(sa)) < 0) {
             fde_push_stdlib_error("bind", errno);
             fdu_safe_close(socketfd);
             return -1;
@@ -1283,12 +1284,12 @@ int fdu_listen_unix(const char *path, unsigned int options)
     return socketfd;
 }
 
-bool fdu_lazy_connect(struct sockaddr_in *addr,
+bool fdu_lazy_connect(struct sockaddr_in* addr,
                       fdu_notify_connect_func connect_func,
-                      void *context,
+                      void* context,
                       unsigned int options)
 {
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(fdu_context_connect)))
         return false;
     //
@@ -1301,9 +1302,9 @@ bool fdu_lazy_connect(struct sockaddr_in *addr,
     }
     //
 
-    int socketfd =socket(PF_INET,
-                         (options & FDU_SOCKET_UDP) ? SOCK_DGRAM : SOCK_STREAM,
-                         0);
+    int socketfd = socket(PF_INET,
+                          (options & FDU_SOCKET_UDP) ? SOCK_DGRAM : SOCK_STREAM,
+                          0);
     if (socketfd < 0) {
         fde_push_stdlib_error("socket", errno);
         return false;
@@ -1329,18 +1330,18 @@ bool fdu_lazy_connect(struct sockaddr_in *addr,
 
     // the actual connect
 
-    int connect_errno =0;
-    bool close_succeed =true;
+    int connect_errno  = 0;
+    bool close_succeed = true;
 
-    if (connect(socketfd, (struct sockaddr*)addr, sizeof(struct sockaddr_in)) != 0) {
+    if (connect(socketfd, (struct sockaddr*) addr, sizeof(struct sockaddr_in)) != 0) {
         if (errno == EINPROGRESS) {
             fdu_pending_connect(socketfd, connect_func, context);
             return true;
         }
-        connect_errno =errno;
+        connect_errno = errno;
 
-        close_succeed =fdu_safe_close(socketfd);
-        socketfd =-1;
+        close_succeed = fdu_safe_close(socketfd);
+        socketfd = -1;
     }
 
     return connect_func(context, socketfd, connect_errno)
@@ -1348,9 +1349,9 @@ bool fdu_lazy_connect(struct sockaddr_in *addr,
         && fde_pop_context(fdu_context_connect, ectx);
 }
 
-// *********************************************************
+// ------------------------------------------------------------
 
-bool fdu_safe_read(int fd, unsigned char *start, const unsigned char *const end)
+bool fdu_safe_read(int fd, unsigned char* start, const unsigned char* const end)
 {
     if (fd < 0
         || !start
@@ -1364,10 +1365,10 @@ bool fdu_safe_read(int fd, unsigned char *start, const unsigned char *const end)
 
     while (start < end) //sic
     {
-        const int i =read(fd, start, end - start);
+        const int i = read(fd, start, end - start);
 
         if (i > 0) {
-            start +=i;
+            start += i;
         }
         else if (!i
                  || (errno != EINTR
@@ -1382,7 +1383,7 @@ bool fdu_safe_read(int fd, unsigned char *start, const unsigned char *const end)
     return true;
 }
 
-bool fdu_safe_write(int fd, const unsigned char *start, const unsigned char *const end)
+bool fdu_safe_write(int fd, const unsigned char* start, const unsigned char* const end)
 {
     if (fd < 0
         || !start
@@ -1396,10 +1397,10 @@ bool fdu_safe_write(int fd, const unsigned char *start, const unsigned char *con
 
     while (start < end)
     {
-        const int i =write(fd, start, end-start);
+        const int i = write(fd, start, end-start);
 
         if (i > 0) {
-            start +=i;
+            start += i;
         }
         else if (errno != EINTR
                  && errno != EAGAIN)
@@ -1413,11 +1414,11 @@ bool fdu_safe_write(int fd, const unsigned char *start, const unsigned char *con
     return true;
 }
 
-bool fdu_safe_write_str(int fd, const unsigned char *buffer)
+bool fdu_safe_write_str(int fd, const unsigned char* buffer)
 {
     return fdu_safe_write(fd,
                           buffer,
-                          buffer ? (buffer+strlen((const char *)buffer)) : 0);
+                          buffer ? (buffer+strlen((const char*) buffer)) : 0);
 }
 
 bool fdu_safe_close(int fd)
@@ -1441,7 +1442,7 @@ bool fdu_safe_close(int fd)
     }
 }
 
-bool fdu_safe_chdir(const char *new_dir)
+bool fdu_safe_chdir(const char* new_dir)
 {
     if (!new_dir
         || !*new_dir)
@@ -1493,9 +1494,9 @@ bool fdu_move_fd(int oldfd, int newfd)
             && fdu_safe_close(oldfd));
 }
 
-bool fdu_pidfile(const char *filename, int options)
+bool fdu_pidfile(const char* filename, int options)
 {
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(fdu_context_pidfile)))
         return false;
     //
@@ -1513,7 +1514,7 @@ bool fdu_pidfile(const char *filename, int options)
      * (advisory lock doesn't apply yet)
      */
 
-    const int fd =open(filename, O_RDWR|O_CREAT|O_CLOEXEC, 0600);
+    const int fd = open(filename, O_RDWR|O_CREAT|O_CLOEXEC, 0600);
     if (fd < 0) {
         fde_push_stdlib_error("open", errno);
         return false;
@@ -1524,10 +1525,10 @@ bool fdu_pidfile(const char *filename, int options)
     {
         struct flock flock;
 
-        flock.l_type =F_WRLCK;
-        flock.l_whence =SEEK_SET;
-        flock.l_start =0;
-        flock.l_len =0;
+        flock.l_type   = F_WRLCK;
+        flock.l_whence = SEEK_SET;
+        flock.l_start  = 0;
+        flock.l_len    = 0;
 
         if (fcntl(fd, F_SETLK, &flock) < 0) {
             fde_push_stdlib_error("fcntl", errno);
@@ -1549,7 +1550,7 @@ bool fdu_pidfile(const char *filename, int options)
         unsigned char buf[pid_buffer_size];
         struct stat st;
 
-        const int len =snprintf((char *)buf, pid_buffer_size, "%u\n", getpid());
+        const int len = snprintf((char*) buf, pid_buffer_size, "%u\n", getpid());
         if (len <= 1) {
             fde_push_stdlib_error("snprintf", 0);
             fdu_safe_close(fd);

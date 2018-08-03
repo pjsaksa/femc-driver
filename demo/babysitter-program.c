@@ -17,7 +17,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-static void handle_pidfile(char *program)
+static void handle_pidfile(char* program)
 {
     char filename[FILENAME_MAX];
 
@@ -26,11 +26,11 @@ static void handle_pidfile(char *program)
     snprintf(filename, FILENAME_MAX,
              "pid/%s.pid",
              program);
-    filename[FILENAME_MAX-1] =0;
+    filename[FILENAME_MAX-1] = 0;
 
     if (!fdu_pidfile(filename, 0))
     {
-        fde_node_t *err =0;
+        fde_node_t* err = 0;
 
         if ((err =fde_get_last_error(fde_node_stdlib_error_b))
             && err->message
@@ -48,7 +48,7 @@ static void handle_pidfile(char *program)
     }
 }
 
-int main(int UNUSED(argc), char *argv[])
+int main(int UNUSED(argc), char* argv[])
 {
     handle_pidfile(argv[0]);
 

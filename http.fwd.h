@@ -7,7 +7,7 @@
 #ifndef FEMC_DRIVER_HTTP_FWD_HEADER
 #define FEMC_DRIVER_HTTP_FWD_HEADER
 
-enum { MaxContentLength = 64*1024 };
+enum { MaxContentLength = 64 * 1024 };
 enum { ContentTypeSize  = 64 };
 
 typedef enum {
@@ -19,13 +19,13 @@ typedef enum {
 } fdu_http_parser_progress_t;
 
 typedef enum {
-    fdu_http_method_get =1,
+    fdu_http_method_get = 1,
     fdu_http_method_head,
     fdu_http_method_post,
 } fdu_http_method_t;
 
 typedef enum {
-    fdu_http_version_1_0 =1,
+    fdu_http_version_1_0 = 1,
     fdu_http_version_1_1,
 } fdu_http_version_t;
 

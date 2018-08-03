@@ -30,18 +30,18 @@ typedef struct {
 
 //
 
-typedef bool (*fdu_http_parse_request_url_func)(void *context,
+typedef bool (*fdu_http_parse_request_url_func)(void* context,
                                                 fdu_http_method_t method,
-                                                const unsigned char *start,
-                                                const unsigned char *end);
-typedef bool (*fdu_http_parse_request_version_func)(void *context,
+                                                const unsigned char* start,
+                                                const unsigned char* end);
+typedef bool (*fdu_http_parse_request_version_func)(void* context,
                                                     fdu_http_version_t version);
-typedef bool (*fdu_http_parse_request_header_func)(void *context,
-                                                   unsigned char *start,
-                                                   unsigned char *end);
-typedef bool (*fdu_http_parse_request_content_func)(void *context,
-                                                    unsigned char *start,
-                                                    unsigned char *end);
+typedef bool (*fdu_http_parse_request_header_func)(void* context,
+                                                   unsigned char* start,
+                                                   unsigned char* end);
+typedef bool (*fdu_http_parse_request_content_func)(void* context,
+                                                    unsigned char* start,
+                                                    unsigned char* end);
 
 struct fdu_http_spec_t_ {
     fdu_http_parse_request_url_func     parse_url;
@@ -51,28 +51,28 @@ struct fdu_http_spec_t_ {
 };
 
 typedef struct {
-    void *context;
-    const fdu_http_spec_t      *http_spec;
+    void* context;
+    const fdu_http_spec_t*      http_spec;
     //
     fdu_http_parser_state_t     parser_state;
     fdu_http_message_state_t    message_state;
 } fdu_http_request_parser_t;
 
-fdu_http_request_parser_t *fdu_new_http_request_parser(void *, const fdu_http_spec_t *);
-void fdu_free_http_request_parser(fdu_http_request_parser_t *);
+fdu_http_request_parser_t* fdu_new_http_request_parser(void*, const fdu_http_spec_t*);
+void fdu_free_http_request_parser(fdu_http_request_parser_t*);
 
 // request
 
-bool fdu_http_parse_request(fdu_http_request_parser_t *parser,
-                            unsigned char **, unsigned char **);  // start, end
+bool fdu_http_parse_request(fdu_http_request_parser_t* parser,
+                            unsigned char**, unsigned char**);  // start, end
 
 // response
 
-extern const char *fdu_http_default_error_message;
+extern const char* fdu_http_default_error_message;
 
-bool fdu_http_conjure_error_response(fdu_http_request_parser_t *parser,
+bool fdu_http_conjure_error_response(fdu_http_request_parser_t* parser,
                                      unsigned int error_code,
-                                     const char *error_message,
-                                     unsigned char **, const unsigned char *);  // start, end
+                                     const char* error_message,
+                                     unsigned char**, const unsigned char*);  // start, end
 
 #endif

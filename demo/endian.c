@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void print_buffer(const char *label, const unsigned char *buffer)
+void print_buffer(const char* label, const unsigned char* buffer)
 {
     printf("%-15s: %02X %02X %02X %02X %02X %02X %02X %02X",
            label,
@@ -31,7 +31,7 @@ void print_buffer(const char *label, const unsigned char *buffer)
 
 int main(void)
 {
-    const uint64_t num =0x0102030405060708;
+    const uint64_t num = 0x0102030405060708;
     enum { sizeof_num = sizeof(num) };
 
     unsigned char buffer[sizeof_num];
@@ -41,7 +41,7 @@ int main(void)
     putchar('\n');
 
     {
-        print_buffer("cast to string", (const unsigned char *)&num);
+        print_buffer("cast to string", (const unsigned char*) &num);
     }
 
     {
@@ -52,7 +52,7 @@ int main(void)
     putchar('\n');
 
     {
-        unsigned char *s =buffer;
+        unsigned char* s = buffer;
         fdu_s11n_write_uint64(&num, &s, buffer + sizeof_num);
         print_buffer("s11n (default)", buffer);
     }
@@ -60,7 +60,7 @@ int main(void)
     fdu_s11n_set_endianness(fdu_little_endian);
 
     {
-        unsigned char *s =buffer;
+        unsigned char* s = buffer;
         fdu_s11n_write_uint64(&num, &s, buffer + sizeof_num);
         print_buffer("s11n (le)", buffer);
     }
@@ -68,7 +68,7 @@ int main(void)
     fdu_s11n_set_endianness(fdu_big_endian);
 
     {
-        unsigned char *s =buffer;
+        unsigned char* s = buffer;
         fdu_s11n_write_uint64(&num, &s, buffer + sizeof_num);
         print_buffer("s11n (be)", buffer);
     }

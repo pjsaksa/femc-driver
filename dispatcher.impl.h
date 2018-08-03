@@ -12,21 +12,21 @@
 #include <sys/time.h>
 
 typedef struct {
-    fdd_service_input *input_handler;
-    fdd_service_output *output_handler;
+    fdd_service_input* input_handler;
+    fdd_service_output* output_handler;
 } fd_block_node_t;
 
-// *****
+// -----
 
 struct fdd_timer_node {
     unsigned int id;
     struct timeval expires;
     fdd_msec_t recurring;
 
-    void *context;
+    void* context;
     fdd_notify_func notify;
 
-    struct fdd_timer_node *next;
+    struct fdd_timer_node* next;
 };
 
 #endif

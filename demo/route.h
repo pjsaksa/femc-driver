@@ -10,7 +10,7 @@
 #include <stdbool.h>
 
 bool route_start(unsigned short,        // local port
-                 const char *,          // target address
+                 const char*,           // target address
                  unsigned short);       // target port
 
 #endif

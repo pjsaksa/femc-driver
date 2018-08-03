@@ -8,7 +8,7 @@
 #define FEMC_DRIVER_ERROR_STACK_FWD_HEADER
 
 typedef enum {
-    fdd_context_main =1,
+    fdd_context_main = 1,
     //
     fdu_context_aac,
     fdu_context_bufio,
@@ -37,11 +37,11 @@ typedef enum {
     fdb_context_storage_file_mmap,
     fdb_context_storage_tcp,
     //
-    fde_first_custom_context =1024,
-    fde_last_custom_context  =65535,
+    fde_first_custom_context = 1024,
+    fde_last_custom_context  = 65535,
 } fde_context_id_t;
 
-// *****
+// -----
 
 enum {                                  // 'message' and 'id' contain:
     fde_node_context,                   // function     context
@@ -56,29 +56,29 @@ enum {                                  // 'message' and 'id' contain:
 };
 
 enum {
-    fde_node_context_b                  =1 << fde_node_context,
-    fde_node_stdlib_error_b             =1 << fde_node_stdlib_error,
-    fde_node_consistency_failure_b      =1 << fde_node_consistency_failure,
-    fde_node_data_corruption_b          =1 << fde_node_data_corruption,
-    fde_node_resource_failure_b         =1 << fde_node_resource_failure,
-    fde_node_message_b                  =1 << fde_node_message,
-    fde_node_meta_error_b               =1 << fde_node_meta_error,
+    fde_node_context_b                  = 1 << fde_node_context,
+    fde_node_stdlib_error_b             = 1 << fde_node_stdlib_error,
+    fde_node_consistency_failure_b      = 1 << fde_node_consistency_failure,
+    fde_node_data_corruption_b          = 1 << fde_node_data_corruption,
+    fde_node_resource_failure_b         = 1 << fde_node_resource_failure,
+    fde_node_message_b                  = 1 << fde_node_message,
+    fde_node_meta_error_b               = 1 << fde_node_meta_error,
     //
-    fde_node_http_error_b               =1 << fde_node_http_error,
+    fde_node_http_error_b               = 1 << fde_node_http_error,
 
-    fde_node_errors_b           =(fde_node_stdlib_error_b
-                                  |fde_node_consistency_failure_b
-                                  |fde_node_data_corruption_b
-                                  |fde_node_resource_failure_b
-                                  |fde_node_message_b
-                                  |fde_node_meta_error_b
-                                  |fde_node_http_error_b),
-    fde_node_all_b              =(fde_node_context_b
-                                  |fde_node_errors_b),
+    fde_node_errors_b           = (fde_node_stdlib_error_b
+                                   |fde_node_consistency_failure_b
+                                   |fde_node_data_corruption_b
+                                   |fde_node_resource_failure_b
+                                   |fde_node_message_b
+                                   |fde_node_meta_error_b
+                                   |fde_node_http_error_b),
+    fde_node_all_b              = (fde_node_context_b
+                                   |fde_node_errors_b),
 };
 
 enum {
-    fde_consistency_invalid_arguments =1,
+    fde_consistency_invalid_arguments = 1,
 
     fde_consistency_io_handler_corrupted,       // dispatcher
     fde_consistency_kill_recurring_timer,
@@ -88,7 +88,7 @@ enum {
 };
 
 enum {
-    fde_resource_memory_allocation =1,
+    fde_resource_memory_allocation = 1,
     fde_resource_buffer_overflow,
     fde_resource_buffer_underflow,
 };

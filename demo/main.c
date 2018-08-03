@@ -17,8 +17,8 @@
 int main(void)
 {
     enum {
-        exit_success =0,
-        exit_failure =1,
+        exit_success = 0,
+        exit_failure = 1,
     };
 
     return (true//timer1_start()

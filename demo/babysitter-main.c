@@ -19,11 +19,11 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-static void file_entries_changed(const babysitter_public_t *user)
+static void file_entries_changed(const babysitter_public_t* user)
 {
     putchar('=');
 
-    for (uint32_t i =0;
+    for (uint32_t i = 0;
          i < user->num_of_entries;
          ++i)
     {
@@ -36,27 +36,27 @@ static void file_entries_changed(const babysitter_public_t *user)
     putchar('\n');
 }
 
-static void program_alive(const babysitter_public_t *user, const char *name, pid_t pid)
+static void program_alive(const babysitter_public_t* user, const char* name, pid_t pid)
 {
     printf("+ %s(%d)\n", name, pid);
     file_entries_changed(user);
 }
 
-static void program_dead(const babysitter_public_t *user, const char *name, pid_t pid)
+static void program_dead(const babysitter_public_t* user, const char* name, pid_t pid)
 {
     printf("- %s(%d)\n", name, pid);
     file_entries_changed(user);
 }
 
-// *********************************************************
+// ------------------------------------------------------------
 
-static babysitter_public_t *master_babysitter = 0;
+static babysitter_public_t* master_babysitter = 0;
 
 //
 
 static void terminate_programs(int signum)
 {
-    for (uint32_t i =0;
+    for (uint32_t i = 0;
          i < master_babysitter->num_of_entries;
          ++i)
     {
@@ -85,7 +85,7 @@ static bool initialize_signals(void)
     return false;
 }
 
-// *********************************************************
+// ------------------------------------------------------------
 
 int main(void)
 {

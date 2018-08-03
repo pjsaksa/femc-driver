@@ -11,12 +11,12 @@
 #include <stdio.h>
 
 #ifndef UNIX_PATH_MAX
-enum { UNIX_PATH_MAX    =108 };
+enum { UNIX_PATH_MAX = 108 };
 #endif
 
-enum { buffer_size =4000 };
+enum { buffer_size = 4000 };
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     int fd;
     struct sockaddr_un addr;
@@ -29,11 +29,11 @@ int main(int argc, char *argv[])
         return 2;
     }
 
-    addr.sun_family =AF_UNIX;
+    addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, argv[1], UNIX_PATH_MAX);
-    addr.sun_path[UNIX_PATH_MAX-1] =0;
+    addr.sun_path[UNIX_PATH_MAX-1] = 0;
 
-    if (connect(fd, (struct sockaddr*)&addr, sizeof(struct sockaddr_un)) < 0) {
+    if (connect(fd, (struct sockaddr*) &addr, sizeof(struct sockaddr_un)) < 0) {
         perror("connect");
         return 2;
     }
@@ -41,16 +41,16 @@ int main(int argc, char *argv[])
     for (;;) {
         char buffer[buffer_size];
 
-        const int bytes =read(STDIN_FILENO, buffer, buffer_size);
+        const int bytes = read(STDIN_FILENO, buffer, buffer_size);
         if (bytes > 0)
         {
-            int written =0;
+            int written = 0;
 
             while (written<bytes)
             {
-                const int i =write(fd, &buffer[written], bytes-written);
+                const int i = write(fd, &buffer[written], bytes-written);
 
-                if (i>0) written +=i;
+                if (i>0) written += i;
                 else {
                     perror("write");
                     return 4;

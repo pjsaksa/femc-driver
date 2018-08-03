@@ -18,11 +18,11 @@
 #include <string.h>
 #include <stdio.h>
 
-enum { this_error_context =fd_demo_context_echo1 };
+enum { this_error_context = fd_demo_context_echo1 };
 
 //
 
-enum { BufferSize =4000 };
+enum { BufferSize = 4000 };
 
 typedef struct {
     int fd;
@@ -40,13 +40,13 @@ typedef struct {
 
 //
 
-static bool echo1_input(void *, int);
+static bool echo1_input(void*, int);
 
-// *********************************************************
+// ------------------------------------------------------------
 
-static bool free_echo1_service(echo1_service_t *service)
+static bool free_echo1_service(echo1_service_t* service)
 {
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(this_error_context)))
         return false;
 
@@ -70,13 +70,13 @@ static bool free_echo1_service(echo1_service_t *service)
     return fde_safe_pop_context(this_error_context, ectx);
 }
 
-// *********************************************************
+// ------------------------------------------------------------
 
-static bool echo1_output(void *service_v, int fd)
+static bool echo1_output(void* service_v, int fd)
 {
-    echo1_service_t *service = (echo1_service_t *) service_v;
+    echo1_service_t* service = (echo1_service_t*) service_v;
 
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(this_error_context)))
         return false;
 
@@ -90,24 +90,24 @@ static bool echo1_output(void *service_v, int fd)
     //
 
     if (!service->filled) {
-        service->can_write =true;
+        service->can_write = true;
         return fdd_remove_output(&service->output_service, fd)
             && fde_safe_pop_context(this_error_context, ectx);
     }
 
-    const int i =write(fd, service->buffer, service->filled);
+    const int i = write(fd, service->buffer, service->filled);
 
     if (i > 0) {
         FDE_ASSERT_DEBUG( (unsigned int)i <= service->filled , "i > service->filled" , false );
         //
 
-        service->filled -=i;
+        service->filled -= i;
 
         if (service->filled)
             memmove(service->buffer, &service->buffer[i], service->filled);
 
         if (service->can_write) {
-            service->can_write =false;
+            service->can_write = false;
             fdd_add_output(&service->output_service, fd);
         }
 
@@ -134,13 +134,13 @@ static bool echo1_output(void *service_v, int fd)
     return fde_safe_pop_context(this_error_context, ectx);
 }
 
-// *********************************************************
+// ------------------------------------------------------------
 
-static bool echo1_input(void *service_v, int fd)
+static bool echo1_input(void* service_v, int fd)
 {
-    echo1_service_t *service = (echo1_service_t *) service_v;
+    echo1_service_t* service = (echo1_service_t*) service_v;
 
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(this_error_context)))
         return false;
 
@@ -155,15 +155,15 @@ static bool echo1_input(void *service_v, int fd)
     //
 
     if (service->filled == BufferSize) {
-        service->can_read =true;
+        service->can_read = true;
         return fdd_remove_input(&service->input_service, fd)
             && fde_safe_pop_context(this_error_context, ectx);
     }
 
-    const int i =read(fd, &service->buffer[service->filled], BufferSize - service->filled);
+    const int i = read(fd, &service->buffer[service->filled], BufferSize - service->filled);
 
     if (service->can_read) {
-        service->can_read =false;
+        service->can_read = false;
         fdd_add_input(&service->input_service, fd);
     }
 
@@ -171,7 +171,7 @@ static bool echo1_input(void *service_v, int fd)
         FDE_ASSERT_DEBUG( i <= BufferSize , "i > BufferSize" , false );
         //
 
-        service->filled +=i;
+        service->filled += i;
 
         FDE_ASSERT_DEBUG( service->filled <= BufferSize ,
                           "service->filled > BufferSize" ,
@@ -190,7 +190,7 @@ static bool echo1_input(void *service_v, int fd)
     }
     else /*if (!i)*/ {
         if (service->filled) {
-            service->input_closed =true;
+            service->input_closed = true;
 
             if (!service->can_read)
                 fdd_remove_input(&service->input_service, fd);
@@ -202,16 +202,16 @@ static bool echo1_input(void *service_v, int fd)
     return fde_safe_pop_context(this_error_context, ectx);
 }
 
-// *********************************************************
+// ------------------------------------------------------------
 
-static bool new_echo1_service(void *UNUSED(context), int fd)
+static bool new_echo1_service(void* UNUSED(context), int fd)
 {
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     if (!(ectx =fde_push_context(this_error_context)))
         return false;
     //
 
-    echo1_service_t *service =malloc(sizeof(echo1_service_t));
+    echo1_service_t* service = malloc(sizeof(echo1_service_t));
 
     if (!service) {
         fde_push_resource_failure_id(fde_resource_memory_allocation);
@@ -219,11 +219,11 @@ static bool new_echo1_service(void *UNUSED(context), int fd)
         return false;
     }
 
-    service->fd =fd;
-    service->filled =0;
-    service->can_read =false;
-    service->can_write =false;
-    service->input_closed =false;
+    service->fd           = fd;
+    service->filled       = 0;
+    service->can_read     = false;
+    service->can_write    = false;
+    service->input_closed = false;
 
     fdd_init_service_input (&service->input_service,  service, &echo1_input);
     fdd_init_service_output(&service->output_service, service, &echo1_output);
@@ -239,11 +239,11 @@ static bool new_echo1_service(void *UNUSED(context), int fd)
     return fde_safe_pop_context(this_error_context, ectx);
 }
 
-// *********************************************************
+// ------------------------------------------------------------
 
 bool echo1_start(unsigned short requested_port)
 {
-    const fde_node_t *ectx;
+    const fde_node_t* ectx;
     int server_fd;
 
     fprintf(FDD_ACTIVE_LOGFILE, "starting echo1 in port %hu\n", requested_port);

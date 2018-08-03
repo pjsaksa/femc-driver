@@ -33,11 +33,11 @@
 #define NTP_RTC_UPDATE_HOUR     0
 #define NTP_RTC_UPDATE_COMMAND  "/sbin/hwclock -w -u"
 
-static int ntp_guard_start_daemon_2(const char *address)
+static int ntp_guard_start_daemon_2(const char* address)
 {
-    int max_fd =open("/dev/null", O_WRONLY);
+    int max_fd = open("/dev/null", O_WRONLY);
     if (max_fd >= 0) close(max_fd);
-    else max_fd =FD_SETSIZE;
+    else max_fd = FD_SETSIZE;
 
     int pid;
 
@@ -45,7 +45,7 @@ static int ntp_guard_start_daemon_2(const char *address)
     fflush(stdout);
     fflush(stderr);
 
-    pid =fork();
+    pid = fork();
     if (pid < 0) {
         perror("ntp-guard:fork");
         return 0;
@@ -72,7 +72,7 @@ static int ntp_guard_start_daemon_2(const char *address)
                   "-l",
                   "-p",
                   address,
-                  (char *)0);
+                  (char*) 0);
         }
         else {
             // "ntpd -n -l"
@@ -81,7 +81,7 @@ static int ntp_guard_start_daemon_2(const char *address)
                   NTP_BINARY,
                   "-n",
                   "-l",
-                  (char *)0);
+                  (char*) 0);
         }
 
         exit(2);
@@ -90,20 +90,20 @@ static int ntp_guard_start_daemon_2(const char *address)
     return pid;
 }
 
-static int ntp_guard_start_daemon(const char *filename)
+static int ntp_guard_start_daemon(const char* filename)
 {
-    enum { BufferSize =80 };
+    enum { BufferSize = 80 };
 
     char address[BufferSize +1];
-    int bytes =0;
+    int bytes = 0;
     int i;
-    int fd =open(filename, O_RDONLY);
+    int fd = open(filename, O_RDONLY);
 
     if (fd < 0)
         return 0;
 
     while ((i =read(fd, &address[bytes], BufferSize-bytes)) > 0)
-        bytes +=i;
+        bytes += i;
     close(fd);
 
     if (i < 0)  // read error
@@ -133,12 +133,12 @@ static int ntp_guard_start_daemon(const char *filename)
  character_scan_finished:
     if (i < 3)  // too short
         return 0;
-    address[i] =0;
+    address[i] = 0;
 
     return ntp_guard_start_daemon_2(address);
 }
 
-// *********************************************************
+// ------------------------------------------------------------
 
 typedef struct {
     time_t last_access;
@@ -147,32 +147,32 @@ typedef struct {
     bool listen_term_sent;
 } ntp_guard_service;
 
-// *****
+// -----
 
-static ntp_guard_service *ntp_guard_new_service(void)
+static ntp_guard_service* ntp_guard_new_service(void)
 {
-    ntp_guard_service *service =malloc(sizeof(ntp_guard_service));
+    ntp_guard_service* service = malloc(sizeof(ntp_guard_service));
 
-    service->last_access      =0;
-    service->last_rtc_update  =0;
-    service->listen_pid       =0;
-    service->listen_term_sent =false;
+    service->last_access      = 0;
+    service->last_rtc_update  = 0;
+    service->listen_pid       = 0;
+    service->listen_term_sent = false;
 
     return service;
 }
 
-// *********************************************************
+// ------------------------------------------------------------
 
-static bool ntp_guard_poller(void *service_v, int pid)
+static bool ntp_guard_poller(void* service_v, int pid)
 {
-    ntp_guard_service *service = (ntp_guard_service *) service_v;
+    ntp_guard_service* service = (ntp_guard_service*) service_v;
 
     if (pid
         && waitpid(pid, 0, WNOHANG) == pid)
     {
         NTP_DEBUG_PRINT(fprintf(FDD_ACTIVE_LOGFILE, "NTP debug: pid %d is dead\n", pid);)
 
-        pid =0;
+        pid = 0;
     }
 
     if (service
@@ -181,16 +181,16 @@ static bool ntp_guard_poller(void *service_v, int pid)
     {
         NTP_DEBUG_PRINT(fprintf(FDD_ACTIVE_LOGFILE, "NTP debug: (listen) pid %d is dead\n", service->listen_pid);)
 
-        service->listen_pid =0;
-        service->listen_term_sent =false;
+        service->listen_pid = 0;
+        service->listen_term_sent = false;
     }
 
-    // *****
+    // -----
 
-    const time_t now            =time(0);
-    const bool daemon_running   =(pid != 0);
-    const bool runfile_exists   =(access(NTP_RUN, F_OK) == 0);
-    const bool ipfile_exists    =(access(NTP_IP, F_OK) == 0);
+    const time_t now            = time(0);
+    const bool daemon_running   = (pid != 0);
+    const bool runfile_exists   = (access(NTP_RUN, F_OK) == 0);
+    const bool ipfile_exists    = (access(NTP_IP, F_OK) == 0);
     struct stat st;
 
     if (daemon_running != runfile_exists)
@@ -207,15 +207,15 @@ static bool ntp_guard_poller(void *service_v, int pid)
                     NTP_DEBUG_PRINT(fprintf(FDD_ACTIVE_LOGFILE, "NTP debug: (listen) killing pid %d\n", service->listen_pid);)
 
                     kill(service->listen_pid, SIGTERM);
-                    service->listen_term_sent =true;
+                    service->listen_term_sent = true;
                 }
                 else {
                     if (kill(service->listen_pid, SIGKILL) < 0)
                     {
                         NTP_DEBUG_PRINT(fprintf(FDD_ACTIVE_LOGFILE, "NTP debug: (listen) KILLing pid %d\n", service->listen_pid);)
 
-                        service->listen_pid =0;
-                        service->listen_term_sent =false;
+                        service->listen_pid = 0;
+                        service->listen_term_sent = false;
                     }
                 }
 
@@ -225,12 +225,12 @@ static bool ntp_guard_poller(void *service_v, int pid)
                 return true;
             }
 
-            pid =ntp_guard_start_daemon(ipfile_exists ? NTP_IP : NTP_NEXUS);
+            pid = ntp_guard_start_daemon(ipfile_exists ? NTP_IP : NTP_NEXUS);
 
             NTP_DEBUG_PRINT(fprintf(FDD_ACTIVE_LOGFILE, "NTP debug: started pid %d\n", pid);)
 
             if (service)
-                service->last_access =ipfile_exists ? now : 0;
+                service->last_access = ipfile_exists ? now : 0;
         }
         else {
             fprintf(FDD_ACTIVE_LOGFILE, "NTP debug: stop daemon\n");
@@ -264,7 +264,7 @@ static bool ntp_guard_poller(void *service_v, int pid)
         localtime_r(&now, &tm);
 
         if (tm.tm_hour == NTP_RTC_UPDATE_HOUR) {
-            service->last_rtc_update =now;
+            service->last_rtc_update = now;
             //
 
             system(NTP_RTC_UPDATE_COMMAND);
@@ -277,7 +277,7 @@ static bool ntp_guard_poller(void *service_v, int pid)
              && !daemon_running
              && !service->listen_pid)
     {
-        service->listen_pid =ntp_guard_start_daemon_2(0);
+        service->listen_pid = ntp_guard_start_daemon_2(0);
 
         NTP_DEBUG_PRINT(fprintf(FDD_ACTIVE_LOGFILE, "NTP debug: start listen\n");)
         NTP_DEBUG_PRINT(fprintf(FDD_ACTIVE_LOGFILE, "NTP debug: (listen) started pid %d\n", service->listen_pid);)
@@ -292,7 +292,7 @@ static bool ntp_guard_poller(void *service_v, int pid)
     return true;
 }
 
-// *********************************************************
+// ------------------------------------------------------------
 
 void ntp_guard_start(void)
 {

@@ -3,7 +3,7 @@
  *
  * Licensed under The MIT License, see file LICENSE.txt in this source tree.
  *
- *****
+ * -----
  *
  * Defines
  * -------

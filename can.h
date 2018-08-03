@@ -28,10 +28,10 @@ struct fdu_can_frame_t_ {
     uint8_t data[8];
 };
 
-bool fdu_s11n_read_can_bin(fdu_can_frame_t *, const unsigned char **, const unsigned char *);
-bool fdu_s11n_write_can_bin(const fdu_can_frame_t *, unsigned char **, const unsigned char *);
+bool fdu_s11n_read_can_bin(fdu_can_frame_t*, const unsigned char**, const unsigned char*);
+bool fdu_s11n_write_can_bin(const fdu_can_frame_t*, unsigned char**, const unsigned char*);
 
-bool fdu_s11n_read_can_txt(fdu_can_frame_t *, const unsigned char **, const unsigned char *);
-bool fdu_s11n_write_can_txt(const fdu_can_frame_t *, unsigned char **, const unsigned char *, bool);
+bool fdu_s11n_read_can_txt(fdu_can_frame_t*, const unsigned char**, const unsigned char*);
+bool fdu_s11n_write_can_txt(const fdu_can_frame_t*, unsigned char**, const unsigned char*, bool);
 
 #endif

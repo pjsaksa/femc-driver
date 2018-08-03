@@ -11,14 +11,14 @@
 #include "utils.fwd.h"
 
 struct fdu_memory_area_ {
-    unsigned char *begin;
-    unsigned char *end;
+    unsigned char* begin;
+    unsigned char* end;
 };
 
-fdu_memory_area init_memory_area(unsigned char *begin, uint32_t size);
-fdu_memory_area init_memory_area_cont(unsigned char **begin_counter, uint32_t size);
+fdu_memory_area init_memory_area(unsigned char* begin, uint32_t size);
+fdu_memory_area init_memory_area_cont(unsigned char** begin_counter, uint32_t size);
 
-/*********************************************************
+/*------------------------------------------------------------
  *
  * Buffered I/O services
  *
@@ -53,86 +53,86 @@ typedef struct fdu_bufio_buffer_ {
     int fd;
     bool can_xfer;
     //
-    unsigned char *data;
+    unsigned char* data;
     unsigned int size;
     unsigned int filled;
     //
-    fdu_bufio_service *service;
+    fdu_bufio_service* service;
 } fdu_bufio_buffer;
 
-typedef bool (*fdu_bufio_notify_func)(fdu_bufio_buffer *, void *context);
-typedef void (*fdu_bufio_close_func)(fdu_bufio_buffer *, void *context, int fd, int error);
+typedef bool (*fdu_bufio_notify_func)(fdu_bufio_buffer*, void* context);
+typedef void (*fdu_bufio_close_func)(fdu_bufio_buffer*, void* context, int fd, int error);
 
 //
 
-static inline bool fdu_bufio_is_closed(fdu_bufio_buffer *bufio) { return bufio->fd < 0; }
-static inline bool fdu_bufio_is_empty(fdu_bufio_buffer *bufio) { return !bufio->filled; }
+static inline bool fdu_bufio_is_closed(fdu_bufio_buffer* bufio) { return bufio->fd < 0; }
+static inline bool fdu_bufio_is_empty(fdu_bufio_buffer* bufio) { return !bufio->filled; }
 
 //
 
-bool fdu_bufio_touch(fdu_bufio_buffer *);
-void fdu_bufio_close(fdu_bufio_buffer *);
-void fdu_bufio_free(fdu_bufio_buffer *);
+bool fdu_bufio_touch(fdu_bufio_buffer*);
+void fdu_bufio_close(fdu_bufio_buffer*);
+void fdu_bufio_free(fdu_bufio_buffer*);
 
-unsigned int fdu_bufio_transfer(fdu_bufio_buffer *, fdu_bufio_buffer *);
+unsigned int fdu_bufio_transfer(fdu_bufio_buffer*, fdu_bufio_buffer*);
 
 //
 
-fdu_bufio_buffer *fdu_new_input_bufio(int fd,
+fdu_bufio_buffer* fdu_new_input_bufio(int fd,
                                       unsigned int buffer_size,
-                                      void *context,
+                                      void* context,
                                       fdu_bufio_notify_func notify_callback,
                                       fdu_bufio_close_func close_callback);
 
-fdu_bufio_buffer *fdu_new_output_bufio(int fd,
+fdu_bufio_buffer* fdu_new_output_bufio(int fd,
                                        unsigned int buffer_size,
-                                       void *context,
+                                       void* context,
                                        fdu_bufio_notify_func notify_callback,
                                        fdu_bufio_close_func close_callback);
 
-fdu_bufio_buffer *fdu_new_input_bufio_inplace(int fd,
+fdu_bufio_buffer* fdu_new_input_bufio_inplace(int fd,
                                               fdu_memory_area service_memory,
                                               fdu_memory_area buffer_memory,
-                                              void *context,
+                                              void* context,
                                               fdu_bufio_notify_func notify_callback,
                                               fdu_bufio_close_func close_callback);
 
-fdu_bufio_buffer *fdu_new_output_bufio_inplace(int fd,
+fdu_bufio_buffer* fdu_new_output_bufio_inplace(int fd,
                                                fdu_memory_area service_memory,
                                                fdu_memory_area buffer_memory,
-                                               void *context,
+                                               void* context,
                                                fdu_bufio_notify_func notify_callback,
                                                fdu_bufio_close_func close_callback);
 
-/*********************************************************
+/*------------------------------------------------------------
  *
  * Pending connect()
  *
  */
 
-typedef bool (*fdu_notify_connect_func)(void *context, int fd, int errno);
+typedef bool (*fdu_notify_connect_func)(void* context, int fd, int errno);
 
-bool fdu_pending_connect(int fd, fdu_notify_connect_func callback, void *context);
+bool fdu_pending_connect(int fd, fdu_notify_connect_func callback, void* context);
 
-/*********************************************************
+/*------------------------------------------------------------
  *
  * Non-blocking DNS lookup
  *
  */
 
-typedef void (*fdu_dnsserv_notify_func)(void *context, const char *address);    // address can be 0
+typedef void (*fdu_dnsserv_notify_func)(void* context, const char* address);    // address can be 0
 
-bool fdu_dnsserv_lookup(const char *name, fdu_dnsserv_notify_func callback, void *context);
+bool fdu_dnsserv_lookup(const char* name, fdu_dnsserv_notify_func callback, void* context);
 
-/*********************************************************
+/*------------------------------------------------------------
  *
  * Auto-accept connection
  *
  */
 
-bool fdu_auto_accept_connection(int fd, fdd_notify_func callback, void *callback_context);
+bool fdu_auto_accept_connection(int fd, fdd_notify_func callback, void* callback_context);
 
-/*********************************************************
+/*------------------------------------------------------------
  *
  * General utilities
  *
@@ -149,31 +149,31 @@ enum {
 };
 
 int fdu_listen_inet4(unsigned short port, unsigned int options);
-int fdu_listen_unix(const char *path, unsigned int options);
+int fdu_listen_unix(const char* path, unsigned int options);
 // >=0 (fd)
 
 struct sockaddr_in;
 
-bool fdu_lazy_connect(struct sockaddr_in *,             // IPv4 address
+bool fdu_lazy_connect(struct sockaddr_in*,              // IPv4 address
                       fdu_notify_connect_func,          // call when rdy
-                      void *,                           // context
+                      void*,                            // context
                       unsigned int);                    // options (UDP)
 // =true : callback will be called
 // =false: connect attempt failed instantly
 
-// *********************************************************
+// ------------------------------------------------------------
 
-bool fdu_safe_read(int fd, unsigned char *start, const unsigned char *end);
-bool fdu_safe_write(int fd, const unsigned char *start, const unsigned char *end);
-bool fdu_safe_write_str(int fd, const unsigned char *buffer);
+bool fdu_safe_read(int fd, unsigned char* start, const unsigned char* end);
+bool fdu_safe_write(int fd, const unsigned char* start, const unsigned char* end);
+bool fdu_safe_write_str(int fd, const unsigned char* buffer);
 
 bool fdu_safe_close(int fd);
-bool fdu_safe_chdir(const char *);
+bool fdu_safe_chdir(const char*);
 bool fdu_copy_fd(int oldfd, int newfd);
 bool fdu_move_fd(int oldfd, int newfd);
 
 enum { FDU_PIDFILE_ONLYCHECK = 0x1 };                   // don't hold lock, don't write pid
 
-bool fdu_pidfile(const char *filename, int options); // >=0
+bool fdu_pidfile(const char* filename, int options); // >=0
 
 #endif

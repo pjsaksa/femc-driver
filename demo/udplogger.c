@@ -32,53 +32,55 @@ typedef struct
     unsigned int input_length;
 
     enum { usd_NotDone, usd_BeingDone, usd_Done } dns_request_status, input_status;
-    char *address;
+    char* address;
 }
     udplogger_service;
 
-static void init_udplogger_service(udplogger_service *service)
+static void init_udplogger_service(udplogger_service* service)
 {
-    service->input_length =0;
+    service->input_length = 0;
 
-    service->dns_request_status =usd_NotDone;
-    service->input_status =usd_NotDone;
-    service->address =0;
+    service->dns_request_status = usd_NotDone;
+    service->input_status = usd_NotDone;
+    service->address = 0;
 }
 
-static void free_udplogger_service(udplogger_service *service)
+static void free_udplogger_service(udplogger_service* service)
 {
     if (service->address)
         free(service->address);
     free(service);
 }
 
-// *********************************************************
+// ------------------------------------------------------------
 
-static void process_input(udplogger_service *service)   // context
+static void process_input(udplogger_service* service)   // context
 {
-    char *nl, *colon, *port_str;
+    char* nl;
+    char* colon;
+    char* port_str;
     int port_size, port, i;
 
-    nl =memchr(service->input_buffer, '\n', service->input_length);
+    nl = memchr(service->input_buffer, '\n', service->input_length);
     if (!nl) {
         free_udplogger_service(service);
         return;
     }
-    colon =memchr(service->input_buffer, ':', nl - service->input_buffer);
+    colon = memchr(service->input_buffer, ':', nl - service->input_buffer);
     if (!colon) {
         free_udplogger_service(service);
         return;
     }
 
-    port_str =colon +1;
-    port_size =nl - port_str;
+    port_str = colon +1;
+    port_size = nl - port_str;
 
     if (port_size < 1 || port_size > 5) {
         free_udplogger_service(service);
         return;
     }
 
-    port =0;
+    port = 0;
     for (i=0; i<port_size; i++) {
         if (!isdigit(port_str[i])) {
             free_udplogger_service(service);
@@ -100,29 +102,29 @@ static void process_input(udplogger_service *service)   // context
         struct sockaddr_in sa;
 
         memset(&sa, 0, sizeof(struct sockaddr_in));
-        sa.sin_family =AF_INET;
-        sa.sin_port =htons(port);
+        sa.sin_family = AF_INET;
+        sa.sin_port = htons(port);
         if (inet_pton(AF_INET, service->address, &sa.sin_addr) <= 0) {
             fprintf(FDD_ACTIVE_LOGFILE, "UDP-logger: failed to convert IP address ('%s')\n", service->address);
             free_udplogger_service(service);
             return;
         }
 
-        fd =socket(PF_INET, SOCK_DGRAM, 0);
+        fd = socket(PF_INET, SOCK_DGRAM, 0);
         if (fd<0) {
             fprintf(FDD_ACTIVE_LOGFILE, "UDP-logger: failed to open UDP socket\n");
             free_udplogger_service(service);
             return;
         }
 
-        len =&service->input_buffer[service->input_length] - nl;
+        len = &service->input_buffer[service->input_length] - nl;
 
         {
             // send 'Date:'-header
 
-            const char *format = "%a, %d %b %Y %H:%M:%S %z";
-            time_t now =time(0);
-            struct tm *tm =localtime(&now);
+            const char* format = "%a, %d %b %Y %H:%M:%S %z";
+            time_t now = time(0);
+            struct tm* tm = localtime(&now);
             char date[50];
 
             strftime(date, 50, format, tm);
@@ -139,9 +141,9 @@ static void process_input(udplogger_service *service)   // context
             return;
         }
 
-        rv =sendto(fd, nl, len,
-                   0,
-                   (struct sockaddr*)&sa, sizeof(struct sockaddr_in));
+        rv = sendto(fd, nl, len,
+                    0,
+                    (struct sockaddr*)&sa, sizeof(struct sockaddr_in));
 
         if (rv < 0)
             fprintf(FDD_ACTIVE_LOGFILE, "UDP-logger: sendto returned %d (%s) instead of expected %d\n",
@@ -153,25 +155,25 @@ static void process_input(udplogger_service *service)   // context
     }
 }
 
-// *********************************************************
+// ------------------------------------------------------------
 
-static void udplogger_set_address(void *service_v,              // context
-                                  const char *new_address)      // ip address, or 0
+static void udplogger_set_address(void* service_v,              // context
+                                  const char* new_address)      // ip address, or 0
 {
-    udplogger_service *service = (udplogger_service *) service_v;
+    udplogger_service* service = (udplogger_service*) service_v;
 
     if (!service) return;
     if (service->dns_request_status != usd_BeingDone) return;
 
     if (service->address) {
-        free((char *)service->address);
-        service->address =0;
+        free((char*) service->address);
+        service->address = 0;
     }
 
     if (new_address && *new_address)
-        service->address =strdup(new_address);
+        service->address = strdup(new_address);
 
-    service->dns_request_status =usd_Done;
+    service->dns_request_status = usd_Done;
 
     if (service->input_status == usd_Done) {
         process_input(service);
@@ -180,19 +182,19 @@ static void udplogger_set_address(void *service_v,              // context
         free_udplogger_service(service);
 }
 
-// *****
+// -----
 
-static bool udplogger_read_input(void *service_v, int fd)
+static bool udplogger_read_input(void* service_v, int fd)
 {
-    udplogger_service *service = (udplogger_service *) service_v;
+    udplogger_service* service = (udplogger_service*) service_v;
 
     // read until no more input (read returns 0)
 
-    const int bytes =read(fd, &service->input_buffer[service->input_length], InputBufferSize-service->input_length);
+    const int bytes = read(fd, &service->input_buffer[service->input_length], InputBufferSize-service->input_length);
 
     if (bytes>0) {
-        service->input_length +=bytes;
-        service->input_status =usd_BeingDone;
+        service->input_length += bytes;
+        service->input_status = usd_BeingDone;
 
         if (service->input_length >= InputBufferSize)
         {
@@ -208,18 +210,18 @@ static bool udplogger_read_input(void *service_v, int fd)
 
         if (service->dns_request_status == usd_NotDone)
         {
-            char *colon =0;
+            char* colon = 0;
 
             if ((colon =memchr(service->input_buffer, ':', service->input_length)) != 0)
             {
-                *colon =0;
+                *colon = 0;
                 if (fdu_dnsserv_lookup(service->input_buffer,
                                        &udplogger_set_address,
                                        service) == 0)
                 {
                     service->dns_request_status = usd_BeingDone;
                 }
-                *colon =':';
+                *colon = ':';
             }
         }
 
@@ -245,7 +247,7 @@ static bool udplogger_read_input(void *service_v, int fd)
 
     // assert: bytes == 0
 
-    service->input_status =usd_Done;
+    service->input_status = usd_Done;
     close(fd);
     fdd_remove_input(&service->local_input, fd);
 
@@ -264,7 +266,7 @@ static bool udplogger_new_connection(void* UNUSED(service), int fd)
     int new_socket;
 
     do {
-        new_socket =accept(fd, 0, 0);
+        new_socket = accept(fd, 0, 0);
     } while (new_socket < 0
              && (errno == EINTR
                  || errno == EAGAIN));
@@ -280,7 +282,7 @@ static bool udplogger_new_connection(void* UNUSED(service), int fd)
 
     printf("UDP-logger: started socket %d\n", new_socket);
 
-    udplogger_service *new_service =malloc(sizeof(udplogger_service));
+    udplogger_service* new_service = malloc(sizeof(udplogger_service));
     init_udplogger_service(new_service);
 
     fdd_init_service_input(&new_service->local_input,
@@ -305,7 +307,7 @@ void udplogger_start(unsigned int requested_port)
     // start the service
 
     {
-        fdd_service_input *listening_service =malloc(sizeof(fdd_service_input));
+        fdd_service_input* listening_service = malloc(sizeof(fdd_service_input));
         fdd_init_service_input(listening_service, listening_service, &udplogger_new_connection);
 
         fdd_add_input(listening_service, socketfd);

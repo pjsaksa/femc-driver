@@ -11,8 +11,8 @@
 #include <sys/types.h>
 
 enum {
-    Babysitter_NameSize    =50,
-    Babysitter_FileEntries =30,
+    Babysitter_NameSize    = 50,
+    Babysitter_FileEntries = 30,
 };
 
 typedef struct {
@@ -27,13 +27,13 @@ typedef struct {
     uint32_t num_of_entries;
 } babysitter_public_t;
 
-typedef void (*babysitter_callback)(const babysitter_public_t *api,
-                                    const char *name,
+typedef void (*babysitter_callback)(const babysitter_public_t* api,
+                                    const char* name,
                                     pid_t pid);
 
 //
 
-babysitter_public_t *new_babysitter_service(babysitter_callback alive,
+babysitter_public_t* new_babysitter_service(babysitter_callback alive,
                                             babysitter_callback dead);
 
 #endif

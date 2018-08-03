@@ -13,28 +13,28 @@
 #include <errno.h>
 #endif
 
-enum { error_stack_size =64 };
+enum { error_stack_size = 64 };
 
 static fde_node_t error_stack[error_stack_size];
-static fde_node_t *top =error_stack;
+static fde_node_t* top = error_stack;
 
-static uint32_t errors =0;
-static uint32_t meta_errors =0;
-static bool error_stack_full =false;
+static uint32_t errors = 0;
+static uint32_t meta_errors = 0;
+static bool error_stack_full = false;
 
-// *****
+// -----
 
-static bool internal_push(fde_node_type_t type, const char *par1, uint32_t par2)
+static bool internal_push(fde_node_type_t type, const char* par1, uint32_t par2)
 {
     if (top - error_stack >= error_stack_size) {
         ++meta_errors;
-        error_stack_full =true;
+        error_stack_full = true;
         return false;
     }
 
-    top->type =type;
-    top->message =par1;
-    top->id =par2;
+    top->type = type;
+    top->message = par1;
+    top->id = par2;
     ++top;
 
     //
@@ -65,31 +65,31 @@ static bool internal_push(fde_node_type_t type, const char *par1, uint32_t par2)
     return true;
 }
 
-// *****
+// -----
 
 #ifdef FD_TRACE
-static unsigned int indent =1;
+static unsigned int indent = 1;
 #endif
 
-const fde_node_t *fde_push_context_(uint32_t context, const char *function)
+const fde_node_t* fde_push_context_(uint32_t context, const char* function)
 {
-    const fde_node_t *ptr =top;
+    const fde_node_t* ptr = top;
 
 #ifdef FD_TRACE
-    const int tmp_errno =errno;
+    const int tmp_errno = errno;
     fprintf(FDD_ACTIVE_LOGFILE, "%*c> %s\n", 2*indent++, ' ', function);
-    errno =tmp_errno;
+    errno = tmp_errno;
 #endif
 
     return internal_push(fde_node_context, function, context) ? ptr : 0;
 }
 
-bool fde_push_stdlib_error(const char *function, int err)
+bool fde_push_stdlib_error(const char* function, int err)
 {
     return internal_push(fde_node_stdlib_error, function, err);
 }
 
-bool fde_push_consistency_failure(const char *label)
+bool fde_push_consistency_failure(const char* label)
 {
     return internal_push(fde_node_consistency_failure, label, 0);
 }
@@ -99,12 +99,12 @@ bool fde_push_consistency_failure_id(uint32_t id)
     return internal_push(fde_node_consistency_failure, 0, id);
 }
 
-bool fde_push_data_corruption(const char *label)
+bool fde_push_data_corruption(const char* label)
 {
     return internal_push(fde_node_data_corruption, label, 0);
 }
 
-bool fde_push_resource_failure(const char *label)
+bool fde_push_resource_failure(const char* label)
 {
     return internal_push(fde_node_resource_failure, label, 0);
 }
@@ -114,33 +114,33 @@ bool fde_push_resource_failure_id(uint32_t res)
     return internal_push(fde_node_resource_failure, 0, res);
 }
 
-bool fde_push_message(const char *message)
+bool fde_push_message(const char* message)
 {
     return internal_push(fde_node_message, message, 0);
 }
 
-bool fde_push_node(const fde_node_t *node)
+bool fde_push_node(const fde_node_t* node)
 {
     return internal_push(node->type, node->message, node->id);
 }
 
 // custom errors
 
-bool fde_push_http_error(const char *message, int code)
+bool fde_push_http_error(const char* message, int code)
 {
     return internal_push(fde_node_http_error, message, code);
 }
 
-// *****
+// -----
 
 uint32_t fde_errors(void)       { return errors + meta_errors; }
 uint32_t fde_meta_errors(void)  { return meta_errors; }
 
-// *****
+// -----
 
-bool fde_pop_context(uint32_t context, const fde_node_t *stack_ptr)
+bool fde_pop_context(uint32_t context, const fde_node_t* stack_ptr)
 {
-    fde_node_t *new_top =top;
+    fde_node_t* new_top = top;
 
 #ifdef FD_TRACE
     fprintf(FDD_ACTIVE_LOGFILE, "%*c<\n", 2*--indent, ' ');
@@ -162,7 +162,7 @@ bool fde_pop_context(uint32_t context, const fde_node_t *stack_ptr)
             && (!stack_ptr
                 || new_top == stack_ptr))
         {
-            for (fde_node_t *ptr =new_top;
+            for (fde_node_t* ptr = new_top;
                  ptr < top;
                  ++ptr)
             {
@@ -182,7 +182,7 @@ bool fde_pop_context(uint32_t context, const fde_node_t *stack_ptr)
                 }
             }
 
-            top =new_top;
+            top = new_top;
             return true;
         }
     }
@@ -191,7 +191,7 @@ bool fde_pop_context(uint32_t context, const fde_node_t *stack_ptr)
     return false;
 }
 
-bool fde_reset_context(uint32_t context, const fde_node_t *stack_ptr)
+bool fde_reset_context(uint32_t context, const fde_node_t* stack_ptr)
 {
 #ifdef FD_TRACE
     fprintf(FDD_ACTIVE_LOGFILE, "%*c+\n", 2*indent++, ' ');
@@ -205,14 +205,14 @@ bool fde_reset_context(uint32_t context, const fde_node_t *stack_ptr)
     return false;
 }
 
-fde_node_t *fde_get_last_error(uint32_t types)
+fde_node_t* fde_get_last_error(uint32_t types)
 {
     return fde_get_next_error(types, top);
 }
 
-fde_node_t *fde_get_next_error(uint32_t types, fde_node_t *last)
+fde_node_t* fde_get_next_error(uint32_t types, fde_node_t* last)
 {
-    fde_node_t *ptr =last;
+    fde_node_t* ptr = last;
 
     while (true) {
         if (ptr == error_stack)
@@ -227,9 +227,9 @@ fde_node_t *fde_get_next_error(uint32_t types, fde_node_t *last)
 
 void fde_for_each_node(uint32_t types,
                        fde_node_callback_func callback,
-                       void *callback_context)
+                       void* callback_context)
 {
-    fde_node_t *ptr =error_stack;
+    fde_node_t* ptr = error_stack;
 
     while (ptr < top) {
         if (types & (1 << ptr->type))
@@ -239,13 +239,13 @@ void fde_for_each_node(uint32_t types,
     }
 }
 
-const char *fde_custom_context_id_to_name(fde_context_id_t) WEAK_LINKAGE;
-const char *fde_custom_context_id_to_name(fde_context_id_t UNUSED(context))
+const char* fde_custom_context_id_to_name(fde_context_id_t) WEAK_LINKAGE;
+const char* fde_custom_context_id_to_name(fde_context_id_t UNUSED(context))
 {
-    return "define: const char *fde_custom_context_id_to_name(fde_context_id_t)";
+    return "define: const char* fde_custom_context_id_to_name(fde_context_id_t)";
 }
 
-const char *fde_context_id_to_name(fde_context_id_t context)
+const char* fde_context_id_to_name(fde_context_id_t context)
 {
     if (context >= fde_first_custom_context
         && context <= fde_last_custom_context)
@@ -291,7 +291,7 @@ const char *fde_context_id_to_name(fde_context_id_t context)
     return 0;
 }
 
-static void print_node(const fde_node_t *node, FILE *output)
+static void print_node(const fde_node_t* node, FILE* output)
 {
     switch (node->type) {
     case fde_node_stdlib_error:
@@ -324,7 +324,7 @@ static void print_node(const fde_node_t *node, FILE *output)
 
     case fde_node_context:
         {
-            const char *ctx_name =fde_context_id_to_name(node->id);
+            const char* ctx_name = fde_context_id_to_name(node->id);
 
             if (ctx_name) {
                 fprintf(output, "In '%s'", ctx_name);
@@ -346,7 +346,7 @@ static void print_node(const fde_node_t *node, FILE *output)
     }
 }
 
-void fde_print_stack(FILE *output)
+void fde_print_stack(FILE* output)
 {
     fde_for_each_node(fde_node_all_b, (fde_node_callback_func)print_node, output);
 }

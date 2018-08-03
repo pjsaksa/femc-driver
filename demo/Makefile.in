@@ -1,0 +1,39 @@
+# Femc Driver
+# Copyright (C) 2016-2018 Pauli Saksa
+#
+# Licensed under The MIT License, see file LICENSE.txt in this source tree.
+#
+# This file is included by ../Makefile
+
+DEMO_OBJECTS=demo/main.o demo/date.o demo/echo1.o demo/echo2.o demo/echo3.o demo/ntp_guard.o demo/route.o \
+  demo/tcplogger.o demo/timer1.o demo/udplogger.o demo/endian.o demo/write2socket.o demo/babysitter-main.o \
+  demo/babysitter-program.o
+DEMO_BINARIES=demo/main demo/endian demo/write2socket demo/babysitter demo/babysitter-program
+
+OBJECTS +=$(DEMO_OBJECTS)
+BINARIES+=$(DEMO_BINARIES)
+TARGETS +=libfemc-demo.a
+
+# binaries
+
+demo/main         : demo/main.o demo/timer1.o demo/date.o demo/echo1.o demo/echo2.o demo/echo3.o demo/route.o
+demo/endian       : demo/endian.o
+demo/write2socket : demo/write2socket.o
+
+demo/babysitter         : app/babysitter.o demo/babysitter-main.o
+demo/babysitter-program : demo/babysitter-program.o
+
+libfemc-demo.a : libfemc-demo.a( $(DEMO_OBJECTS) )
+
+#
+
+$(DEMO_BINARIES) : libfemc-driver.a
+
+# generic rules
+
+$(DEMO_OBJECTS) : demo/Makefile.in
+
+# file-specific flags
+
+demo/ntp_guard.o : CFLAGS+=-Wno-unused-result -Wno-error=cast-function-type
+demo/tcplogger.o : CFLAGS+=-Wno-error=cast-function-type

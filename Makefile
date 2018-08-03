@@ -25,7 +25,7 @@ TARGETS =$(DRIVER_TARGETS)
 # subdirectories
 
 include app/Makefile.in
-include demos/Makefile.in
+include demo/Makefile.in
 
 #
 

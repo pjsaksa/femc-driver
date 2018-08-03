@@ -21,12 +21,14 @@ typedef enum {
     fdu_context_s11n,
     fdu_context_safe,
     //
-    fd_demos_context_date,
-    fd_demos_context_echo1,
-    fd_demos_context_echo2,
-    fd_demos_context_echo3,
-    fd_demos_context_route,
-    fd_demos_context_timer1,
+    fd_app_babysitter,
+    //
+    fd_demo_context_date,
+    fd_demo_context_echo1,
+    fd_demo_context_echo2,
+    fd_demo_context_echo3,
+    fd_demo_context_route,
+    fd_demo_context_timer1,
     //
     fdb_context_base,
     fdb_context_s11n,

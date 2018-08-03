@@ -18,7 +18,7 @@
 #include <string.h>
 #include <stdio.h>
 
-enum { this_error_context =fd_demos_context_echo3 };
+enum { this_error_context =fd_demo_context_echo3 };
 
 //
 

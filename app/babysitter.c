@@ -20,13 +20,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-enum {
-    babysitter_context =fde_first_custom_context,
-};
-
-// *****
-
-enum { this_error_context =babysitter_context };
+enum { this_error_context =fd_app_babysitter };
 
 //
 
@@ -50,18 +44,6 @@ typedef struct {
 //
 
 enum { NoEntry  =0xFFFFFFFFu };
-
-// *********************************************************
-
-const char *fde_custom_context_id_to_name(fde_context_id_t context)
-{
-    switch (context) {
-    case babysitter_context: return "babysitter";
-    default: break;
-    }
-
-    return 0;
-}
 
 // *********************************************************
 

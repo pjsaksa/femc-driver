@@ -14,7 +14,7 @@
 #include <errno.h>
 #include <stdio.h>
 
-enum { this_error_context =fd_demos_context_date };
+enum { this_error_context =fd_demo_context_date };
 
 //
 

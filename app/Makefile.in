@@ -1,0 +1,19 @@
+# Femc Driver
+# Copyright (C) 2016-2018 Pauli Saksa
+#
+# Licensed under The MIT License, see file LICENSE.txt in this source tree.
+#
+# This file is included by ../Makefile
+
+APP_OBJECTS=app/babysitter.o
+
+OBJECTS +=$(APP_OBJECTS)
+TARGETS +=libfemc-app.a
+
+# binaries
+
+libfemc-app.a : libfemc-app.a( $(APP_OBJECTS) )
+
+# generic rules
+
+$(APP_OBJECTS) : app/Makefile.in

@@ -268,12 +268,14 @@ const char *fde_context_id_to_name(fde_context_id_t context)
     case fdu_context_s11n:        return "driver s11n";
     case fdu_context_safe:        return "utils safe functions";
         //
-    case fd_demos_context_date:   return "demo date";
-    case fd_demos_context_echo1:  return "demo echo1";
-    case fd_demos_context_echo2:  return "demo echo2";
-    case fd_demos_context_echo3:  return "demo echo3";
-    case fd_demos_context_route:  return "demo route";
-    case fd_demos_context_timer1: return "demo timer1";
+    case fd_app_babysitter:       return "app babysitter";
+        //
+    case fd_demo_context_date:    return "demo date";
+    case fd_demo_context_echo1:   return "demo echo1";
+    case fd_demo_context_echo2:   return "demo echo2";
+    case fd_demo_context_echo3:   return "demo echo3";
+    case fd_demo_context_route:   return "demo route";
+    case fd_demo_context_timer1:  return "demo timer1";
         //
     case fdb_context_base:              return "DBMS base";
     case fdb_context_s11n:              return "DBMS s11n";

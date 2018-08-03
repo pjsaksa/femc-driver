@@ -8,7 +8,7 @@
 DEMOS_OBJECTS=demos/main.o demos/date.o demos/echo1.o demos/echo2.o demos/echo3.o \
   demos/ntp_guard.o demos/route.o demos/tcplogger.o demos/timer1.o demos/udplogger.o \
   demos/endian.o demos/write2socket.o \
-  demos/babysitter.o demos/babysitter-main.o demos/babysitter-program.o
+  demos/babysitter-main.o demos/babysitter-program.o
 DEMOS_BINARIES=demos/main demos/endian demos/write2socket demos/babysitter demos/babysitter-program
 
 OBJECTS +=$(DEMOS_OBJECTS)
@@ -22,7 +22,7 @@ demos/main         : demos/main.o demos/timer1.o demos/date.o demos/echo1.o demo
 demos/endian       : demos/endian.o
 demos/write2socket : demos/write2socket.o
 
-demos/babysitter         : demos/babysitter.o demos/babysitter-main.o
+demos/babysitter         : app/babysitter.o demos/babysitter-main.o
 demos/babysitter-program : demos/babysitter-program.o
 
 libfemc-demos.a : libfemc-demos.a( $(DEMOS_OBJECTS) )
@@ -37,4 +37,5 @@ $(DEMOS_OBJECTS) : demos/Makefile.in
 
 # file-specific flags
 
-demos/ntp_guard.o : CFLAGS+=-Wno-unused-result
+demos/ntp_guard.o : CFLAGS+=-Wno-unused-result -Wno-error=cast-function-type
+demos/tcplogger.o : CFLAGS+=-Wno-error=cast-function-type

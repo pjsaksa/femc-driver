@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-enum { this_error_context =fd_demos_context_timer1 };
+enum { this_error_context =fd_demo_context_timer1 };
 
 //
 

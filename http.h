@@ -58,8 +58,12 @@ typedef struct {
     fdu_http_message_state_t    message_state;
 } fdu_http_request_parser_t;
 
-fdu_http_request_parser_t* fdu_new_http_request_parser(void*, const fdu_http_spec_t*);
-void fdu_free_http_request_parser(fdu_http_request_parser_t*);
+//
+
+void fdu_clear_http_request_parser(fdu_http_request_parser_t*);
+void fdu_init_http_request_parser(fdu_http_request_parser_t*,
+                                  void* context,
+                                  const fdu_http_spec_t* http_spec);
 
 // request
 

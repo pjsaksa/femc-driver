@@ -18,32 +18,26 @@ enum { this_error_context = fdu_context_http };
 
 //
 
-fdu_http_request_parser_t* fdu_new_http_request_parser(void* context, const fdu_http_spec_t* http_spec)
+void fdu_init_http_request_parser(fdu_http_request_parser_t* parser,
+                                  void* context,
+                                  const fdu_http_spec_t* http_spec)
 {
-    fdu_http_request_parser_t* parser = malloc(sizeof(fdu_http_request_parser_t));
-
-    if (!parser)
-        return 0;
-
-    parser->context = context;
-
-    parser->parser_state.progress           = fdu_http_progress_request_line;
-    parser->parser_state.content_loaded     = 0;
-
-    parser->message_state.method            = 0;
-    parser->message_state.version           = 0;
-    parser->message_state.closing           = true;
-    parser->message_state.content_length    = 0;
-    parser->message_state.content_type[0]   = 0;
-
+    parser->context   = context;
     parser->http_spec = http_spec;
 
-    return parser;
+    fdu_clear_http_request_parser(parser);
 }
 
-void fdu_free_http_request_parser(fdu_http_request_parser_t* parser)
+void fdu_clear_http_request_parser(fdu_http_request_parser_t* parser)
 {
-    free(parser);
+    parser->parser_state.progress         = fdu_http_progress_request_line;
+    parser->parser_state.content_loaded   = 0;
+
+    parser->message_state.method          = 0;
+    parser->message_state.version         = 0;
+    parser->message_state.closing         = true;
+    parser->message_state.content_length  = 0;
+    parser->message_state.content_type[0] = 0;
 }
 
 // ------------------------------------------------------------

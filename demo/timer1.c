@@ -45,8 +45,10 @@ static bool exit_sequence_1(void* UNUSED(context), int UNUSED(id))
     const fde_node_t* ectx;
 
     return (ectx =fde_push_context(this_error_context))
+        //
         && print("BAM")
         && fdd_add_timer(&exit_sequence_2, 0, 0, 3000, 0)
+        //
         && fde_pop_context(this_error_context, ectx);
 }
 
@@ -74,10 +76,13 @@ bool timer1_start(void)
     const fde_node_t* ectx;
 
     return (ectx =fde_push_context(this_error_context))
+        //
         && fprintf(FDD_ACTIVE_LOGFILE, "starting timer1\n") > 0
+        //
         && fdd_add_timer(&timer1_timer, " 1/2 sec", 0, 500, 500)
         && fdd_add_timer(&timer1_timer, " 2   sec", 0, 2000, 2000)
         && fdd_add_timer(&timer1_timer, "10/3 sec", 0, 3333, 3333)
         && fdd_add_timer(exit_sequence_1, 0, 0, 10001, 0)
+        //
         && fde_pop_context(this_error_context, ectx);
 }

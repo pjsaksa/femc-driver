@@ -14,13 +14,10 @@
 #include "echo3.h"
 #include "route.h"
 
+#include <stdlib.h>
+
 int main(void)
 {
-    enum {
-        exit_success = 0,
-        exit_failure = 1,
-    };
-
     return (true//timer1_start()
             && date_start(10000)
             && echo1_start(10001)
@@ -38,6 +35,6 @@ int main(void)
             && route_start(10023, "127.0.0.1", 10013)
             //
             && fdd_main(FDD_INFINITE))
-        ? exit_success
-        : exit_failure;
+        ? EXIT_SUCCESS
+        : EXIT_FAILURE;
 }

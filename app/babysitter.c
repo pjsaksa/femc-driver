@@ -1,4 +1,4 @@
-/* Femc Driver - babysitter demo
+/* Femc Driver - babysitter app
  * Copyright (C) 2015-2018 Pauli Saksa
  *
  * Licensed under The MIT License, see file LICENSE.txt in this source tree.

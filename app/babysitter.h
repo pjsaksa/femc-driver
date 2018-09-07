@@ -1,11 +1,11 @@
-/* Femc Driver - babysitter demo
+/* Femc Driver - babysitter app
  * Copyright (C) 2017-2018 Pauli Saksa
  *
  * Licensed under The MIT License, see file LICENSE.txt in this source tree.
  */
 
-#ifndef FEMC_DRIVER_DEMOS_BABYSITTER_HEADER
-#define FEMC_DRIVER_DEMOS_BABYSITTER_HEADER
+#ifndef FEMC_DRIVER_APP_BABYSITTER_HEADER
+#define FEMC_DRIVER_APP_BABYSITTER_HEADER
 
 #include <stdint.h>
 #include <sys/types.h>

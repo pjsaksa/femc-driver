@@ -269,6 +269,8 @@ const char* fde_context_id_to_name(fde_context_id_t context)
     case fdu_context_safe:        return "utils safe functions";
         //
     case fd_app_babysitter:       return "app babysitter";
+    case fd_app_site_main:        return "app site main";
+    case fd_app_site_parser:      return "app site parser";
         //
     case fd_demo_context_date:    return "demo date";
     case fd_demo_context_echo1:   return "demo echo1";

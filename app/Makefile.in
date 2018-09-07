@@ -5,7 +5,7 @@
 #
 # This file is included by ../Makefile
 
-APP_OBJECTS=app/babysitter.o
+APP_OBJECTS=app/babysitter.o app/site/parser.o app/site/site.o
 
 OBJECTS +=$(APP_OBJECTS)
 TARGETS +=libfemc-app.a

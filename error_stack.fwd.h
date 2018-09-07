@@ -22,6 +22,8 @@ typedef enum {
     fdu_context_safe,
     //
     fd_app_babysitter,
+    fd_app_site_main,
+    fd_app_site_parser,
     //
     fd_demo_context_date,
     fd_demo_context_echo1,

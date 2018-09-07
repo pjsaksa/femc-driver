@@ -9,7 +9,7 @@
 
 #include "dispatcher.h"
 
-#include <sys/time.h>
+#include <time.h>
 
 typedef struct {
     fdd_service_input* input_handler;
@@ -20,7 +20,7 @@ typedef struct {
 
 struct fdd_timer_node {
     unsigned int id;
-    struct timeval expires;
+    struct timespec expires;
     fdd_msec_t recurring;
 
     void* context;

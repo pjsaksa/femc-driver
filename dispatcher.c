@@ -98,7 +98,7 @@ static bool fdd_logfile_reopen(void)
 
 // ------------------------------------------------------------
 
-static bool get_expiration_time(struct timeval* tv, fdd_msec_t msec)
+static bool get_expiration_time(struct timespec* tv, fdd_msec_t msec)
 {
 #ifdef FD_DEBUG
     if (!tv) {
@@ -108,32 +108,34 @@ static bool get_expiration_time(struct timeval* tv, fdd_msec_t msec)
     }
 #endif
 
-    if (gettimeofday(tv, 0) < 0) {
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, tv) < 0) {
         fde_push_context(this_error_context);
-        fde_push_stdlib_error("gettimeofday", errno);
+        fde_push_stdlib_error("clock_gettime(CLOCK_MONOTONIC_RAW)", errno);
         return false;
     }
 
     if (!msec) return true;
 
     tv->tv_sec  += msec/1000;
-    tv->tv_usec += (msec%1000)*1000;
+    tv->tv_nsec += (msec%1000)*1000000;
 
-    while (tv->tv_usec >= 1000000) {
+    while (tv->tv_nsec >= 1000000000) {
         ++tv->tv_sec;
-        tv->tv_usec -= 1000000;
+        tv->tv_nsec -= 1000000000;
     }
 
     return true;
 }
 
 // (a > b) ? (value > 0)
-static int expiration_compare(struct timeval* a, struct timeval* b)
+static int expiration_compare(struct timespec* a, struct timespec* b)
 {
-    return (a->tv_sec != b->tv_sec) ? (a->tv_sec - b->tv_sec) : (a->tv_usec - b->tv_usec);
+    return (a->tv_sec != b->tv_sec)
+        ? (a->tv_sec - b->tv_sec)
+        : (a->tv_nsec - b->tv_nsec);
 }
 
-static bool expiration_msec(struct timeval* tv, fdd_msec_t* msec)
+static bool expiration_msec(struct timespec* tv, fdd_msec_t* msec)
 {
 #ifdef FD_DEBUG
     if (!tv || !msec) {
@@ -143,10 +145,10 @@ static bool expiration_msec(struct timeval* tv, fdd_msec_t* msec)
     }
 #endif
 
-    struct timeval now;
-    if (gettimeofday(&now, 0) < 0) {
+    struct timespec now;
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &now) < 0) {
         fde_push_context(this_error_context);
-        fde_push_stdlib_error("gettimeofday", errno);
+        fde_push_stdlib_error("clock_gettime(CLOCK_MONOTONIC_RAW)", errno);
         return false;
     }
 
@@ -155,12 +157,13 @@ static bool expiration_msec(struct timeval* tv, fdd_msec_t* msec)
         return true;
     }
 
-    *msec = (tv->tv_sec - now.tv_sec) * 1000
-        +   (tv->tv_usec - now.tv_usec) / 1000;
+    *msec = ((tv->tv_sec - now.tv_sec) * 1000
+             + (tv->tv_nsec - now.tv_nsec) / 1000000);
+
     return true;
 }
 
-static bool add_expiration_msec(struct timeval* tv, fdd_msec_t msec)
+static bool add_expiration_msec(struct timespec* tv, fdd_msec_t msec)
 {
 #ifdef FD_DEBUG
     if (!tv || !msec) {
@@ -171,15 +174,15 @@ static bool add_expiration_msec(struct timeval* tv, fdd_msec_t msec)
 #endif
 
     const fdd_msec_t sec  = (fdd_msec_t)tv->tv_sec  +  msec/1000;
-    const fdd_msec_t usec = (fdd_msec_t)tv->tv_usec + (msec%1000)*1000;
+    const fdd_msec_t nsec = (fdd_msec_t)tv->tv_nsec + (msec%1000)*1000000;
 
-    if (usec > 1000000U) {
-        tv->tv_sec = sec +1;
-        tv->tv_usec = usec -1000000;
+    if (nsec > 1000000000u) {
+        tv->tv_sec  = sec +1;
+        tv->tv_nsec = nsec -1000000000;
     }
     else {
-        tv->tv_sec = sec;
-        tv->tv_usec = usec;
+        tv->tv_sec  = sec;
+        tv->tv_nsec = nsec;
     }
 
     return true;
@@ -664,7 +667,7 @@ bool fdd_main(fdd_msec_t max_msec)
     //
 
     unsigned int timers_handled = 0;
-    struct timeval max_expires;
+    struct timespec max_expires;
 
     if (max_msec > 0 && max_msec < FDD_INFINITE)
         if (!get_expiration_time(&max_expires, max_msec))

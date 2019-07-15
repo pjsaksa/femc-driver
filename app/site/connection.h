@@ -1,5 +1,5 @@
 /* Femc Driver - site app
- * Copyright (C) 2018 Pauli Saksa
+ * Copyright (C) 2018-2019 Pauli Saksa
  *
  * Licensed under The MIT License, see file LICENSE.txt in this source tree.
  */

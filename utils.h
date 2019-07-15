@@ -49,7 +49,7 @@ extern const unsigned int sizeof_fdu_bufio_service;     // = sizeof(fdu_bufio_se
 
 //
 
-typedef struct fdu_bufio_buffer_ {
+struct fdu_bufio_buffer_ {
     int fd;
     bool can_xfer;
     //
@@ -58,7 +58,7 @@ typedef struct fdu_bufio_buffer_ {
     unsigned int filled;
     //
     fdu_bufio_service* service;
-} fdu_bufio_buffer;
+};
 
 typedef bool (*fdu_bufio_notify_func)(fdu_bufio_buffer*, void* context);
 typedef void (*fdu_bufio_close_func)(fdu_bufio_buffer*, void* context, int fd, int error);

@@ -19,7 +19,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-static void file_entries_changed(const babysitter_public_t* user)
+static void file_entries_changed(const fda_babysitter_public* user)
 {
     putchar('=');
 
@@ -36,13 +36,13 @@ static void file_entries_changed(const babysitter_public_t* user)
     putchar('\n');
 }
 
-static void program_alive(const babysitter_public_t* user, const char* name, pid_t pid)
+static void program_alive(const fda_babysitter_public* user, const char* name, pid_t pid)
 {
     printf("+ %s(%d)\n", name, pid);
     file_entries_changed(user);
 }
 
-static void program_dead(const babysitter_public_t* user, const char* name, pid_t pid)
+static void program_dead(const fda_babysitter_public* user, const char* name, pid_t pid)
 {
     printf("- %s(%d)\n", name, pid);
     file_entries_changed(user);
@@ -50,7 +50,7 @@ static void program_dead(const babysitter_public_t* user, const char* name, pid_
 
 // ------------------------------------------------------------
 
-static babysitter_public_t* master_babysitter = 0;
+static fda_babysitter_public* master_babysitter = 0;
 
 //
 
@@ -96,8 +96,8 @@ int main(void)
         && fdu_pidfile("../babysitter.pid", 0)
         && fdd_open_logfile("../babysitter.log", 0)
         //
-        && (master_babysitter =new_babysitter_service(&program_alive,
-                                                      &program_dead))
+        && (master_babysitter =fda_babysitter_new_service(&program_alive,
+                                                          &program_dead))
         && fdd_main(FDD_INFINITE))
     {
         return EXIT_SUCCESS;

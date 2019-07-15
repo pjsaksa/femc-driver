@@ -11,6 +11,6 @@
 
 #include <stdbool.h>
 
-bool site_start(const fd_site_config *);
+bool site_start(const fda_site_config *);
 
 #endif

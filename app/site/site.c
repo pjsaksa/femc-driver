@@ -17,12 +17,12 @@
 
 enum {
     buffer_size        = 4 * 1024,
-    this_error_context = fd_app_site_main,
+    this_error_context = fda_site_main,
 };
 
 //
 
-static bool new_connection(const fd_site_config* config, int fd)
+static bool new_connection(const fda_site_config* config, int fd)
 {
     const fde_node_t* ectx =0;
 
@@ -38,7 +38,7 @@ static bool new_connection(const fd_site_config* config, int fd)
 
     //
 
-    enum { sizeof_connection = sizeof(fd_site_connection) };
+    enum { sizeof_connection = sizeof(fda_site_connection) };
 
     const size_t total_size = (sizeof_connection
                                + 2 * sizeof_fdu_bufio_service
@@ -55,7 +55,7 @@ static bool new_connection(const fd_site_config* config, int fd)
         return false;
     }
 
-    fd_site_connection* const connection = (fd_site_connection*) alloc;
+    fda_site_connection* const connection = (fda_site_connection*) alloc;
 
     unsigned char* counter = alloc + sizeof_connection;
 
@@ -72,14 +72,14 @@ static bool new_connection(const fd_site_config* config, int fd)
                                          iserv_mem,
                                          ibuf_mem,
                                          connection,
-                                         fd_site_parser_client_got_input,
-                                         fd_site_parser_client_input_closed))
+                                         fda_site_parser_client_got_input,
+                                         fda_site_parser_client_input_closed))
         && (os =fdu_new_output_bufio_inplace(fd,
                                              oserv_mem,
                                              obuf_mem,
                                              connection,
-                                             fd_site_parser_client_got_output,
-                                             fd_site_parser_client_output_closed)))
+                                             fda_site_parser_client_got_output,
+                                             fda_site_parser_client_output_closed)))
     {
         connection->state          = s_parsing_request;
         connection->client_input   = is;
@@ -107,7 +107,7 @@ static bool new_connection(const fd_site_config* config, int fd)
 
 // ------------------------------------------------------------
 
-bool site_start(const fd_site_config* config)
+bool site_start(const fda_site_config* config)
 {
     const fde_node_t* ectx = 0;
     int server_fd = -1;

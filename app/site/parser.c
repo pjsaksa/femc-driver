@@ -18,7 +18,7 @@
 #include <string.h>
 
 enum {
-    this_error_context = fd_app_site_parser,
+    this_error_context = fda_site_parser,
 };
 
 //
@@ -36,7 +36,7 @@ enum {
 
 // ------------------------------------------------------------
 
-static void free_connection(fd_site_connection* connection)
+static void free_connection(fda_site_connection* connection)
 {
     const int fd = connection->client_output->fd;
 
@@ -48,8 +48,8 @@ static void free_connection(fd_site_connection* connection)
 
 // ------------------------------------------------------------
 
-bool fd_site_parser_client_got_input(fdu_bufio_buffer* input,
-                                     void* connection_void)
+bool fda_site_parser_client_got_input(fdu_bufio_buffer* input,
+                                      void* connection_void)
 {
     printf("client_got_input()\n");
     //
@@ -70,7 +70,7 @@ bool fd_site_parser_client_got_input(fdu_bufio_buffer* input,
 
     // -----
 
-    fd_site_connection* const connection = (fd_site_connection*) connection_void;
+    fda_site_connection* const connection = (fda_site_connection*) connection_void;
     fdu_bufio_buffer* const output = connection->client_output;
 
     if (fdu_bufio_is_closed(output)) {
@@ -150,13 +150,13 @@ bool fd_site_parser_client_got_input(fdu_bufio_buffer* input,
 
 // ------------------------------------------------------------
 
-bool fd_site_parser_client_got_output(fdu_bufio_buffer* output,
-                                      void* connection_void)
+bool fda_site_parser_client_got_output(fdu_bufio_buffer* output,
+                                       void* connection_void)
 {
     printf("client_got_output()\n");
     //
 
-    fd_site_connection* const connection = (fd_site_connection*) connection_void;
+    fda_site_connection* const connection = (fda_site_connection*) connection_void;
 
     return connection->state != s_closing
         || output->filled;
@@ -164,10 +164,10 @@ bool fd_site_parser_client_got_output(fdu_bufio_buffer* output,
 
 // ------------------------------------------------------------
 
-void fd_site_parser_client_input_closed(fdu_bufio_buffer* input,
-                                        void* connection_void,
-                                        int fd,
-                                        int read_error)
+void fda_site_parser_client_input_closed(fdu_bufio_buffer* input,
+                                         void* connection_void,
+                                         int fd,
+                                         int read_error)
 {
     printf("client_input_closed()\n");
     //
@@ -191,7 +191,7 @@ void fd_site_parser_client_input_closed(fdu_bufio_buffer* input,
     if (read_error)
         fprintf(stderr, "read: %s\n", strerror(read_error));
 
-    fd_site_connection* const connection = (fd_site_connection*) connection_void;
+    fda_site_connection* const connection = (fda_site_connection*) connection_void;
     fdu_bufio_buffer* const output = connection->client_output;
 
     FDE_ASSERT( input == connection->client_input , "input != connection->client_input" , );
@@ -218,10 +218,10 @@ void fd_site_parser_client_input_closed(fdu_bufio_buffer* input,
 
 // ------------------------------------------------------------
 
-void fd_site_parser_client_output_closed(fdu_bufio_buffer* output,
-                                         void* connection_void,
-                                         int fd,
-                                         int write_error)
+void fda_site_parser_client_output_closed(fdu_bufio_buffer* output,
+                                          void* connection_void,
+                                          int fd,
+                                          int write_error)
 {
     printf("client_output_closed()\n");
     //
@@ -245,7 +245,7 @@ void fd_site_parser_client_output_closed(fdu_bufio_buffer* output,
     if (write_error)
         fprintf(stderr, "site/parser:write: %s\n", strerror(write_error));
 
-    fd_site_connection* connection = (fd_site_connection*) connection_void;
+    fda_site_connection* connection = (fda_site_connection*) connection_void;
 
     FDE_ASSERT( output == connection->client_output , "output != connection->client_output" , );
 

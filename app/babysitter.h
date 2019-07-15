@@ -11,29 +11,29 @@
 #include <sys/types.h>
 
 enum {
-    Babysitter_NameSize    = 50,
-    Babysitter_FileEntries = 30,
+    FdaBabysitter_NameSize    = 50,
+    FdaBabysitter_FileEntries = 30,
 };
 
 typedef struct {
-    char name[Babysitter_NameSize];
+    char name[FdaBabysitter_NameSize];
     pid_t pid;
     int fd;
     int wd;
-} file_entry_t;
+} fda_babysitter_file_entry;
 
 typedef struct {
-    file_entry_t entries[Babysitter_FileEntries];
+    fda_babysitter_file_entry entries[FdaBabysitter_FileEntries];
     uint32_t num_of_entries;
-} babysitter_public_t;
+} fda_babysitter_public;
 
-typedef void (*babysitter_callback)(const babysitter_public_t* api,
-                                    const char* name,
-                                    pid_t pid);
+typedef void (*fda_babysitter_process_callback)(const fda_babysitter_public* api,
+                                                const char* name,
+                                                pid_t pid);
 
 //
 
-babysitter_public_t* new_babysitter_service(babysitter_callback alive,
-                                            babysitter_callback dead);
+fda_babysitter_public* fda_babysitter_new_service(fda_babysitter_process_callback alive,
+                                                  fda_babysitter_process_callback dead);
 
 #endif

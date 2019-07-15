@@ -18,10 +18,10 @@ typedef enum {
     s_sending_response,
     //
     s_closing,
-} fd_site_connection_state;
+} fda_site_connection_state;
 
 typedef struct {
-    fd_site_connection_state state;
+    fda_site_connection_state state;
 
     fdu_bufio_buffer* client_input;
     fdu_bufio_buffer* client_output;
@@ -31,7 +31,7 @@ typedef struct {
 
     fdu_bufio_buffer* worker_input;
     fdu_bufio_buffer* worker_output;
-} fd_site_connection;
+} fda_site_connection;
 
 
 #endif

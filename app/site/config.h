@@ -13,6 +13,6 @@ typedef struct {
     unsigned short port;
     const fdu_http_spec_t* http_spec;
     unsigned int sizeof_request;
-} fd_site_config;
+} fda_site_config;
 
 #endif

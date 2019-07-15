@@ -20,7 +20,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-enum { this_error_context = fd_app_babysitter };
+enum { this_error_context = fda_babysitter };
 
 //
 
@@ -30,10 +30,10 @@ enum {
 };
 
 typedef struct {
-    babysitter_public_t user;
+    fda_babysitter_public user;
     //
-    babysitter_callback alive;
-    babysitter_callback dead;
+    fda_babysitter_process_callback alive;
+    fda_babysitter_process_callback dead;
     //
     fdd_service_input grab_service;
     fdd_service_input drop_service;
@@ -47,21 +47,21 @@ enum { NoEntry = 0xFFFFFFFFu };
 
 // ------------------------------------------------------------
 
-static uint32_t find_entry_by_name(const babysitter_public_t* const user,
+static uint32_t find_entry_by_name(const fda_babysitter_public* const user,
                                    const char* name)
 {
     for (uint32_t i = 0;
          i < user->num_of_entries;
          ++i)
     {
-        if (strncmp(name, user->entries[i].name, Babysitter_NameSize) == 0)
+        if (strncmp(name, user->entries[i].name, FdaBabysitter_NameSize) == 0)
             return i;
     }
 
     return NoEntry;
 }
 
-static uint32_t find_entry_by_wd(const babysitter_public_t* const user,
+static uint32_t find_entry_by_wd(const fda_babysitter_public* const user,
                                  const int wd)
 {
     if (wd < 0)
@@ -78,17 +78,17 @@ static uint32_t find_entry_by_wd(const babysitter_public_t* const user,
     return NoEntry;
 }
 
-static uint32_t store_file_entry(babysitter_public_t* const user,
+static uint32_t store_file_entry(fda_babysitter_public* const user,
                                  const char* name)
 {
-    if (user->num_of_entries == Babysitter_FileEntries) {
+    if (user->num_of_entries == FdaBabysitter_FileEntries) {
         fde_push_resource_failure_id(fde_resource_memory_allocation);
         return NoEntry;
     }
 
-    file_entry_t* file_entry = &user->entries[user->num_of_entries];
+    fda_babysitter_file_entry* file_entry = &user->entries[user->num_of_entries];
 
-    strncpy(file_entry->name, name, Babysitter_NameSize);
+    strncpy(file_entry->name, name, FdaBabysitter_NameSize);
     file_entry->pid = -1;
     file_entry->fd  = -1;
     file_entry->wd  = -1;
@@ -96,7 +96,7 @@ static uint32_t store_file_entry(babysitter_public_t* const user,
     return user->num_of_entries++;
 }
 
-static void clear_file_entry(babysitter_public_t* const user,
+static void clear_file_entry(fda_babysitter_public* const user,
                              uint32_t idx)
 {
     if (idx >= user->num_of_entries) {
@@ -108,13 +108,13 @@ static void clear_file_entry(babysitter_public_t* const user,
     if (idx != user->num_of_entries) {
         memcpy(&user->entries[idx],
                &user->entries[user->num_of_entries],
-               sizeof(file_entry_t));
+               sizeof(fda_babysitter_file_entry));
     }
 }
 
 // ------------------------------------------------------------
 
-static bool check_file_is_locked(file_entry_t* file_entry)
+static bool check_file_is_locked(fda_babysitter_file_entry* file_entry)
 {
     int fd = file_entry->fd;
 
@@ -258,7 +258,7 @@ static bool handle_grab_event(babysitter_service_t* const service,
                               const struct inotify_event* const event)
 {
     return (!event->len
-            && event->len >= Babysitter_NameSize
+            && event->len >= FdaBabysitter_NameSize
             && !*event->name)
         || refresh_file(service, event->name);
 }
@@ -378,8 +378,8 @@ static bool scan_directory(babysitter_service_t* service)
 
 // ------------------------------------------------------------
 
-babysitter_public_t* new_babysitter_service(babysitter_callback alive,
-                                            babysitter_callback dead)
+fda_babysitter_public* fda_babysitter_new_service(fda_babysitter_process_callback alive,
+                                                  fda_babysitter_process_callback dead)
 {
     if (OneBufferSize != 272    // if these change, make sure new values make sense
         || BufferSize != 4080)

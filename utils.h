@@ -130,7 +130,10 @@ bool fdu_dnsserv_lookup(const char* name, fdu_dnsserv_notify_func callback, void
  *
  */
 
-bool fdu_auto_accept_connection(int fd, fdd_notify_func callback, void* callback_context);
+typedef struct aac_service_s aac_service_t;
+
+aac_service_t* fdu_auto_accept_connection(int fd, fdd_notify_func callback, void* callback_context);
+bool fdu_close_auto_accept(aac_service_t* service);
 
 /*------------------------------------------------------------
  *

@@ -1046,11 +1046,12 @@ bool fdu_dnsserv_lookup(const char* name, fdu_dnsserv_notify_func notify, void* 
  *
  */
 
-typedef struct {
+struct aac_service_s {
     fdd_service_input listening_service;
     fdd_notify_func callback;
     void* callback_context;
-} aac_service_t;
+    int server_fd;
+};
 
 static bool fdu_aac_new_connection(void* service_v,
                                    int server_fd)
@@ -1086,20 +1087,20 @@ static bool fdu_aac_new_connection(void* service_v,
         && fde_pop_context(fdu_context_aac, ectx);
 }
 
-bool fdu_auto_accept_connection(int server_fd,
-                                fdd_notify_func callback,
-                                void* callback_context)
+aac_service_t* fdu_auto_accept_connection(int server_fd,
+                                          fdd_notify_func callback,
+                                          void* callback_context)
 {
     const fde_node_t* ectx;
     if (!(ectx =fde_push_context(fdu_context_aac)))
-        return false;
+        return 0;
     //
     if (server_fd < 0
         || !callback)
     {
         fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
         fdu_safe_close(server_fd);
-        return false;
+        return 0;
     }
     //
 
@@ -1108,11 +1109,12 @@ bool fdu_auto_accept_connection(int server_fd,
     if (!service) {
         fde_push_resource_failure_id(fde_resource_memory_allocation);
         fdu_safe_close(server_fd);
-        return false;
+        return 0;
     }
 
     service->callback         = callback;
     service->callback_context = callback_context;
+    service->server_fd        = server_fd;
 
     fdd_init_service_input(&service->listening_service,
                            service,
@@ -1121,8 +1123,28 @@ bool fdu_auto_accept_connection(int server_fd,
     if (!fdd_add_input(&service->listening_service, server_fd)) {
         free(service);
         fdu_safe_close(server_fd);
+        return 0;
+    }
+
+    fde_pop_context(fdu_context_aac, ectx);
+    return service;
+}
+
+bool fdu_close_auto_accept(aac_service_t* service)
+{
+    const fde_node_t* ectx;
+    if (!(ectx =fde_push_context(fdu_context_aac)))
+        return false;
+    //
+    if (!service) {
+        fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
         return false;
     }
+    //
+
+    fdd_remove_input(&service->listening_service, service->server_fd);
+    free(service);
+    fdu_safe_close(service->server_fd);
 
     return fde_safe_pop_context(fdu_context_aac, ectx);
 }

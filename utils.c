@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/signalfd.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -1147,6 +1148,168 @@ bool fdu_close_auto_accept(aac_service_t* service)
     fdu_safe_close(service->server_fd);
 
     return fde_safe_pop_context(fdu_context_aac, ectx);
+}
+
+/*------------------------------------------------------------
+ *
+ * Signal-fd
+ *
+ */
+
+static bool handle_signalfd_input(void* void_service, int fd)
+{
+    const fde_node_t* ectx;
+    if (!(ectx =fde_push_context(fdu_context_signalfd)))
+        return false;
+    //
+    if (!void_service) {
+        fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
+        return false;
+    }
+    //
+
+    fdu_signalfd_service* service = (fdu_signalfd_service*) void_service;
+
+    if (service->fd != fd) {
+        fde_push_consistency_failure("handle_signalfd_input() called with invalid fd");
+        return false;
+    }
+    if (!service->callback) {
+        fde_push_consistency_failure("handle_signalfd_input() called with invalid callback");
+        return false;
+    }
+    //
+
+    enum {
+        buffer_units  = 8,
+        one_info_size = sizeof(struct signalfd_siginfo),
+        buffer_size   = buffer_units * one_info_size,
+    };
+
+    struct signalfd_siginfo info[buffer_units];
+
+    const int bytes = read(service->fd, &info, buffer_size);
+
+    bool total_callback_success = true;
+
+    if (bytes > 0)
+    {
+        if (bytes % one_info_size != 0) {
+            fde_push_data_corruption("signalfd read returned data of invalid size");
+            return false;
+        }
+
+        const struct signalfd_siginfo *      ptr =  info;
+        const struct signalfd_siginfo *const end = &info[bytes / one_info_size];
+
+        for (;
+             ptr < end;
+             ++ptr)
+        {
+            const bool success = (*service->callback)(service->callback_context,
+                                                      ptr->ssi_signo);
+
+            if (!success)
+                total_callback_success = false;
+        }
+    }
+    else if (!bytes)
+    {
+        fde_push_stdlib_error("signalfd read", 0);
+        return false;
+    }
+    else /* if (bytes < 0) */
+    {
+        fde_push_stdlib_error("signalfd read", errno);
+        return false;
+    }
+
+    return total_callback_success
+        && fde_safe_pop_context(fdu_context_signalfd, ectx);
+}
+
+bool fdu_signalfd_init(fdu_signalfd_service* service,
+                       const sigset_t* signal_mask,
+                       fdd_notify_func callback,
+                       void* callback_context)
+{
+    const fde_node_t* ectx;
+    if (!(ectx =fde_push_context(fdu_context_signalfd)))
+        return false;
+    //
+    if (!service
+        || !signal_mask
+        || !callback)
+    {
+        fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
+        return false;
+    }
+    //
+
+    fdd_init_service_input(&service->input_service, service, handle_signalfd_input);
+
+    service->callback         = callback;
+    service->callback_context = callback_context;
+    service->fd               = signalfd(-1, signal_mask, SFD_CLOEXEC);
+
+    if (service->fd < 0) {
+        fde_push_stdlib_error("signalfd", errno);
+        return false;
+    }
+
+    return fdd_add_input(&service->input_service, service->fd)
+        && fde_safe_pop_context(fdu_context_signalfd, ectx);
+}
+
+bool fdu_signalfd_reset(fdu_signalfd_service* service,
+                        const sigset_t* signal_mask)
+{
+    const fde_node_t* ectx;
+    if (!(ectx =fde_push_context(fdu_context_signalfd)))
+        return false;
+    //
+    if (!service
+        || !signal_mask)
+    {
+        fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
+        return false;
+    }
+    //
+    if (service->fd < 0) {
+        fde_push_consistency_failure("service must have been previously initialized");
+        return false;
+    }
+    //
+
+    if (signalfd(service->fd, signal_mask, 0) < 0) {
+        fde_push_stdlib_error("signalfd", errno);
+        return false;
+    }
+
+    return fde_safe_pop_context(fdu_context_signalfd, ectx);
+}
+
+bool fdu_signalfd_close(fdu_signalfd_service* service)
+{
+    const fde_node_t* ectx;
+    if (!(ectx =fde_push_context(fdu_context_signalfd)))
+        return false;
+    //
+    if (!service) {
+        fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
+        return false;
+    }
+    //
+
+    bool success = true;
+
+    if (! fdd_remove_input(&service->input_service, service->fd) ) success = false;
+    if (! fdu_safe_close(service->fd)                            ) success = false;
+
+    service->fd = -1;
+
+    return success
+        && fde_safe_pop_context(fdu_context_signalfd, ectx);
 }
 
 /*------------------------------------------------------------

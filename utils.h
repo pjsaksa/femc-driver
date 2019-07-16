@@ -10,6 +10,8 @@
 #include "dispatcher.h"
 #include "utils.fwd.h"
 
+#include <signal.h>
+
 struct fdu_memory_area_ {
     unsigned char* begin;
     unsigned char* end;
@@ -134,6 +136,30 @@ typedef struct aac_service_s aac_service_t;
 
 aac_service_t* fdu_auto_accept_connection(int fd, fdd_notify_func callback, void* callback_context);
 bool fdu_close_auto_accept(aac_service_t* service);
+
+/*------------------------------------------------------------
+ *
+ * Signal-fd
+ *
+ */
+
+typedef struct {
+    fdd_service_input input_service;
+    int fd;
+
+    fdd_notify_func callback;
+    void* callback_context;
+} fdu_signalfd_service;
+
+bool fdu_signalfd_init(fdu_signalfd_service* service,
+                       const sigset_t* signal_mask,
+                       fdd_notify_func callback,
+                       void* callback_context);
+
+bool fdu_signalfd_reset(fdu_signalfd_service* service,
+                        const sigset_t* signal_mask);
+
+bool fdu_signalfd_close(fdu_signalfd_service* service);
 
 /*------------------------------------------------------------
  *

@@ -20,6 +20,7 @@ typedef enum {
     fdu_context_pidfile,
     fdu_context_s11n,
     fdu_context_safe,
+    fdu_context_signalfd,
     //
     fda_babysitter,
     fda_site_main,

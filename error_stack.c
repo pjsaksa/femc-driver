@@ -267,6 +267,7 @@ const char* fde_context_id_to_name(fde_context_id_t context)
     case fdu_context_pidfile:     return "utils pid file";
     case fdu_context_s11n:        return "driver s11n";
     case fdu_context_safe:        return "utils safe functions";
+    case fdu_context_signalfd:    return "utils signalfd";
         //
     case fda_babysitter:          return "app babysitter";
     case fda_site_main:           return "app site main";

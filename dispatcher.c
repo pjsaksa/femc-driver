@@ -709,7 +709,22 @@ bool fdd_main(fdd_msec_t max_msec)
                         if (fde_reset_context(this_error_context, main_error_context))
                             timer_ok = true;
                     }
-                    else if (add_expiration_msec(&tmr->expires, tmr->recurring)) {
+                    else if (add_expiration_msec(&tmr->expires, tmr->recurring))
+                    {
+                        {
+                            // If more than one occurrence of the timer is already pending, merge them into one.
+
+                            struct timespec next_recurring = tmr->expires;
+                            fdd_msec_t next_recurring_msec;
+
+                            while (add_expiration_msec(&next_recurring, tmr->recurring)
+                                   && expiration_msec(&next_recurring, &next_recurring_msec)
+                                   && next_recurring_msec <= 0)
+                            {
+                                tmr->expires = next_recurring;
+                            }
+                        }
+
                         fdd_add_timer_node(tmr);
                         tmr = 0;
                     }

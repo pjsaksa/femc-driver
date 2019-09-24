@@ -169,12 +169,16 @@ bool fdu_signalfd_close(fdu_signalfd_service* service);
 
 enum {
     // fdu_listen_inet4() & fdu_lazy_connect():
-    FDU_SOCKET_UDP       =0x1,          // default: TCP
+    FDU_SOCKET_STREAM        = 0,
+    FDU_SOCKET_DGRAM         = 1,
+    FDU_SOCKET_SEQPACKET     = 2,
+
+    FDU_SOCKET_PROTOCOL_MASK = 0x03,
 
     // fdu_listen_inet4():
-    FDU_SOCKET_LOCAL     =0x2,          // default: any interface
-    FDU_SOCKET_NOREUSE   =0x4,
-    FDU_SOCKET_BROADCAST =0x8,
+    FDU_SOCKET_LOCAL         = 1<<2,
+    FDU_SOCKET_NOREUSE       = 1<<3,
+    FDU_SOCKET_BROADCAST     = 1<<4,
 };
 
 int fdu_listen_inet4(unsigned short port, unsigned int options);
@@ -186,7 +190,7 @@ struct sockaddr_in;
 bool fdu_lazy_connect(struct sockaddr_in*,              // IPv4 address
                       fdu_notify_connect_func,          // call when rdy
                       void*,                            // context
-                      unsigned int);                    // options (UDP)
+                      unsigned int);                    // options
 // =true : callback will be called
 // =false: connect attempt failed instantly
 

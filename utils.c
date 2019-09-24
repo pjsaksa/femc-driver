@@ -1325,13 +1325,19 @@ int fdu_listen_inet4(unsigned short port, unsigned int options)
         return -1;
     //
 
+    const unsigned int protocol = (options & FDU_SOCKET_PROTOCOL_MASK);
+
     if (!port
-        || (options & ~(FDU_SOCKET_UDP
+        || (options & ~(FDU_SOCKET_PROTOCOL_MASK
                         |FDU_SOCKET_LOCAL
                         |FDU_SOCKET_NOREUSE
                         |FDU_SOCKET_BROADCAST))
+        || (protocol != FDU_SOCKET_STREAM
+            && protocol != FDU_SOCKET_DGRAM
+            && protocol != FDU_SOCKET_SEQPACKET)
         || (options & FDU_SOCKET_BROADCAST
-            && (options & (FDU_SOCKET_UDP|FDU_SOCKET_LOCAL)) != FDU_SOCKET_UDP))
+            && (options & FDU_SOCKET_LOCAL
+                || protocol != FDU_SOCKET_DGRAM)))
     {
         fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
         return -1;
@@ -1340,8 +1346,11 @@ int fdu_listen_inet4(unsigned short port, unsigned int options)
     // open socket
 
     const int socketfd = socket(PF_INET,
-                                (options & FDU_SOCKET_UDP) ? SOCK_DGRAM : SOCK_STREAM,
+                                (protocol == FDU_SOCKET_DGRAM) ? SOCK_DGRAM
+                                : (protocol == FDU_SOCKET_SEQPACKET) ? SOCK_SEQPACKET
+                                : SOCK_STREAM,
                                 0);
+
     if (socketfd < 0) {
         fde_push_stdlib_error("socket", errno);
         return -1;
@@ -1394,7 +1403,7 @@ int fdu_listen_inet4(unsigned short port, unsigned int options)
 
     // listen
 
-    if (!(options & FDU_SOCKET_UDP)) {
+    if (protocol != FDU_SOCKET_DGRAM) {
         if (listen(socketfd, 64) == -1) {
             fde_push_stdlib_error("listen", errno);
             fdu_safe_close(socketfd);
@@ -1416,17 +1425,26 @@ int fdu_listen_unix(const char* path, unsigned int options)
     if (!(ectx =fde_push_context(fdu_context_listen)))
         return -1;
     //
+
+    const unsigned int protocol = (options & FDU_SOCKET_PROTOCOL_MASK);
+
     if (!path
         || !path[0]
-        || (options & ~(FDU_SOCKET_UDP)))
+        || (options & ~FDU_SOCKET_PROTOCOL_MASK)
+        || (protocol != FDU_SOCKET_STREAM
+            && protocol != FDU_SOCKET_DGRAM
+            && protocol != FDU_SOCKET_SEQPACKET))
     {
         fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
         return -1;
     }
+
     //
 
     const int socketfd = socket(PF_UNIX,
-                                (options & FDU_SOCKET_UDP) ? SOCK_DGRAM : SOCK_STREAM,
+                                (protocol == FDU_SOCKET_DGRAM) ? SOCK_DGRAM
+                                : (protocol == FDU_SOCKET_SEQPACKET) ? SOCK_SEQPACKET
+                                : SOCK_STREAM,
                                 0);
     if (socketfd < 0) {
         fde_push_stdlib_error("socket", errno);
@@ -1453,7 +1471,7 @@ int fdu_listen_unix(const char* path, unsigned int options)
 
     // listen
 
-    if (!(options & FDU_SOCKET_UDP)) {
+    if (protocol != FDU_SOCKET_DGRAM) {
         if (listen(socketfd, 64) == -1) {
             fde_push_stdlib_error("listen", errno);
             fdu_safe_close(socketfd);
@@ -1478,9 +1496,15 @@ bool fdu_lazy_connect(struct sockaddr_in* addr,
     if (!(ectx =fde_push_context(fdu_context_connect)))
         return false;
     //
+
+    const unsigned int protocol = (options & FDU_SOCKET_PROTOCOL_MASK);
+
     if (!addr
         || !connect_func
-        || (options & ~(FDU_SOCKET_UDP)))
+        || options & ~FDU_SOCKET_PROTOCOL_MASK
+        || (protocol != FDU_SOCKET_STREAM
+            && protocol != FDU_SOCKET_DGRAM
+            && protocol != FDU_SOCKET_SEQPACKET))
     {
         fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
         return false;
@@ -1488,7 +1512,9 @@ bool fdu_lazy_connect(struct sockaddr_in* addr,
     //
 
     int socketfd = socket(PF_INET,
-                          (options & FDU_SOCKET_UDP) ? SOCK_DGRAM : SOCK_STREAM,
+                          (protocol == FDU_SOCKET_DGRAM) ? SOCK_DGRAM
+                          : (protocol == FDU_SOCKET_SEQPACKET) ? SOCK_SEQPACKET
+                          : SOCK_STREAM,
                           0);
     if (socketfd < 0) {
         fde_push_stdlib_error("socket", errno);

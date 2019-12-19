@@ -440,8 +440,8 @@ fda_babysitter_public* fda_babysitter_new_service(fda_babysitter_process_callbac
     fdd_init_service_input(&service->grab_service, service, &got_file_grabbed_event);
     fdd_init_service_input(&service->drop_service, service, &got_file_dropped_event);
 
-    if (fdd_add_input(&service->grab_service, grab_fd)
-        && fdd_add_input(&service->drop_service, drop_fd)
+    if (fdd_add_input(grab_fd, &service->grab_service)
+        && fdd_add_input(drop_fd, &service->drop_service)
         && scan_directory(service)
         && fde_safe_pop_context(this_error_context, ectx)
         )

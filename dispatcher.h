@@ -33,15 +33,10 @@ typedef struct { fdd_service serv; } fdd_service_output;
 
 // ------------------------------------------------------------
 
-bool fdd_check_input(fdd_service_input*, int);
-bool fdd_check_output(fdd_service_output*, int);
-
-bool fdd_add_input(fdd_service_input*, int);
-bool fdd_add_output(fdd_service_output*, int);
-bool fdd_remove_input(fdd_service_input*, int);
-bool fdd_remove_output(fdd_service_output*, int);
-bool fdd_remove_input_service(fdd_service_input*);
-bool fdd_remove_output_service(fdd_service_output*);
+bool fdd_add_input(int fd, fdd_service_input* service);
+bool fdd_add_output(int fd, fdd_service_output* service);
+bool fdd_remove_input(int fd);
+bool fdd_remove_output(int fd);
 
 bool fdd_add_timer(fdd_notify_func, void* context, fdd_context_id_t id, fdd_msec_t msec, fdd_msec_t recurring);
 

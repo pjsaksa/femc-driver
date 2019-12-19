@@ -124,39 +124,7 @@ bool dispatcher_empty(void)
         && nfds_w == 0;
 }
 
-bool fdd_check_input(fdd_service_input* service, int fd)
-{
-#ifdef FD_DEBUG
-    if (fd < 0) {
-        fde_push_context(this_error_context);
-        fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
-        return false;
-    }
-#endif
-
-    if ((unsigned int)fd >= fd_block_size)
-        return false;
-
-    return fd_block[fd].input_handler == service;
-}
-
-bool fdd_check_output(fdd_service_output* service, int fd)
-{
-#ifdef FD_DEBUG
-    if (fd < 0) {
-        fde_push_context(this_error_context);
-        fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
-        return false;
-    }
-#endif
-
-    if ((unsigned int)fd >= fd_block_size)
-        return false;
-
-    return fd_block[fd].output_handler == service;
-}
-
-bool fdd_add_input(fdd_service_input* service, int fd)
+bool fdd_add_input(int fd, fdd_service_input* service)
 {
 #ifdef FD_DEBUG
     if (!service
@@ -191,7 +159,7 @@ bool fdd_add_input(fdd_service_input* service, int fd)
     return true;
 }
 
-bool fdd_add_output(fdd_service_output* service, int fd)
+bool fdd_add_output(int fd, fdd_service_output* service)
 {
 #ifdef FD_DEBUG
     if (!service
@@ -226,7 +194,7 @@ bool fdd_add_output(fdd_service_output* service, int fd)
     return true;
 }
 
-bool fdd_remove_input(fdd_service_input* service, int fd)
+bool fdd_remove_input(int fd)
 {
 #ifdef FD_DEBUG
     if (fd < 0) {
@@ -236,9 +204,7 @@ bool fdd_remove_input(fdd_service_input* service, int fd)
     }
 #endif
 
-    if ((unsigned int)fd >= fd_block_size
-        || (service
-            && fd_block[fd].input_handler != service))
+    if ((unsigned int)fd >= fd_block_size)
     {
         fde_push_context(this_error_context);
         fde_push_consistency_failure_id(fde_consistency_io_handler_corrupted);
@@ -258,7 +224,7 @@ bool fdd_remove_input(fdd_service_input* service, int fd)
     return true;
 }
 
-bool fdd_remove_output(fdd_service_output* service, int fd)
+bool fdd_remove_output(int fd)
 {
 #ifdef FD_DEBUG
     if (fd < 0) {
@@ -268,9 +234,7 @@ bool fdd_remove_output(fdd_service_output* service, int fd)
     }
 #endif
 
-    if ((unsigned int)fd >= fd_block_size
-        || (service
-            && fd_block[fd].output_handler != service))
+    if ((unsigned int)fd >= fd_block_size)
     {
         fde_push_context(this_error_context);
         fde_push_consistency_failure_id(fde_consistency_io_handler_corrupted);
@@ -283,62 +247,6 @@ bool fdd_remove_output(fdd_service_output* service, int fd)
 
     FD_CLR(fd, &cached_fd_w);
     FD_CLR(fd, &current_fd_w);
-
-    while (nfds_w && !fd_block[nfds_w-1].output_handler)
-        --nfds_w;
-
-    return true;
-}
-
-bool fdd_remove_input_service(fdd_service_input* service)
-{
-#ifdef FD_DEBUG
-    if (!service) {
-        fde_push_context(this_error_context);
-        fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
-        return false;
-    }
-#endif
-
-    for (int fd = 0; fd < nfds_r; ++fd)
-    {
-        if (fd_block[fd].input_handler != service)
-            continue;
-
-        fd_block[fd].input_handler = 0;
-
-        FD_CLR(fd, &cached_fd_r);
-        FD_CLR(fd, &current_fd_r);
-    }
-
-    while (nfds_r && !fd_block[nfds_r-1].input_handler)
-        --nfds_r;
-
-    return true;
-}
-
-bool fdd_remove_output_service(fdd_service_output* service)
-{
-#ifdef FD_DEBUG
-    if (!service) {
-        fde_push_context(this_error_context);
-        fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
-        return false;
-    }
-#endif
-
-    //
-
-    for (int fd = 0; fd < nfds_w; ++fd)
-    {
-        if (fd_block[fd].output_handler != service)
-            continue;
-
-        fd_block[fd].output_handler = 0;
-
-        FD_CLR(fd, &cached_fd_w);
-        FD_CLR(fd, &current_fd_w);
-    }
 
     while (nfds_w && !fd_block[nfds_w-1].output_handler)
         --nfds_w;

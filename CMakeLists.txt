@@ -4,6 +4,7 @@ project(femc-driver)
 add_library(femc-driver STATIC
     can.c
     dispatcher.c
+    dispatcher_select.c
     error_stack.c
     http.c
     s11n.c

@@ -10,6 +10,8 @@
 typedef enum {
     fdd_context_main = 1,
     //
+    fdd_context_select,
+    //
     fdu_context_aac,
     fdu_context_bufio,
     fdu_context_can,

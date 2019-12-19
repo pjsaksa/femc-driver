@@ -257,6 +257,8 @@ const char* fde_context_id_to_name(fde_context_id_t context)
     switch (context) {
     case fdd_context_main:        return "driver dispatcher";
         //
+    case fdd_context_select:      return "driver dispatcher/select";
+        //
     case fdu_context_aac:         return "utils auto-accept connection";
     case fdu_context_bufio:       return "utils buf-io";
     case fdu_context_can:         return "driver CANbus";

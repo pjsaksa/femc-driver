@@ -29,4 +29,13 @@ struct fdd_timer_node {
     struct fdd_timer_node* next;
 };
 
+// ------------------------------------------------------------
+
+bool resolve_notify_return(bool notify_ok);
+
+//
+
+bool dispatcher_poll(fdd_msec_t msec);
+bool dispatcher_empty(void);
+
 #endif

@@ -6,9 +6,9 @@
 
 #include "babysitter.h"
 
-#include "dispatcher.h"
-#include "error_stack.h"
-#include "utils.h"
+#include "../dispatcher.h"
+#include "../error_stack.h"
+#include "../utils.h"
 
 #include <dirent.h>
 #include <errno.h>

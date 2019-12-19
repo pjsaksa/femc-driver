@@ -7,11 +7,11 @@
 #include "parser.h"
 #include "connection.h"
 
-#include "dispatcher.h"
-#include "error_stack.h"
-#include "generic.h"
-#include "http.h"
-#include "utils.h"
+#include "../../dispatcher.h"
+#include "../../error_stack.h"
+#include "../../generic.h"
+#include "../../http.h"
+#include "../../utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -6,9 +6,9 @@
 
 #include "date.h"
 
-#include "generic.h"
-#include "error_stack.h"
-#include "utils.h"
+#include "../generic.h"
+#include "../error_stack.h"
+#include "../utils.h"
 
 #include <time.h>
 #include <errno.h>

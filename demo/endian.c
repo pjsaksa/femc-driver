@@ -4,9 +4,9 @@
  * Licensed under The MIT License, see file LICENSE.txt in this source tree.
  */
 
-#include "generic.h"
-#include "error_stack.h"
-#include "s11n.h"
+#include "../generic.h"
+#include "../error_stack.h"
+#include "../s11n.h"
 
 #include <stdio.h>
 #include <string.h>

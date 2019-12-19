@@ -9,9 +9,9 @@
 #include "connection.h"
 #include "parser.h"
 
-#include "dispatcher.h"
-#include "generic.h"
-#include "error_stack.h"
+#include "../../dispatcher.h"
+#include "../../generic.h"
+#include "../../error_stack.h"
 
 #include <stdlib.h>
 

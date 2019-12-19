@@ -6,9 +6,9 @@
 
 #include "timer1.h"
 
-#include "generic.h"
-#include "dispatcher.h"
-#include "error_stack.h"
+#include "../generic.h"
+#include "../dispatcher.h"
+#include "../error_stack.h"
 
 #include <stdio.h>
 #include <errno.h>

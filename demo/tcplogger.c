@@ -8,9 +8,9 @@
 
 #include "tcplogger.h"
 
-#include "generic.h"
-#include "dispatcher.h"
-#include "utils.h"
+#include "../generic.h"
+#include "../dispatcher.h"
+#include "../utils.h"
 
 #include <arpa/inet.h>
 #include <ctype.h>

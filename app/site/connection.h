@@ -7,8 +7,8 @@
 #ifndef FEMC_DRIVER_APP_SITE_CONNECTION_HEADER
 #define FEMC_DRIVER_APP_SITE_CONNECTION_HEADER
 
-#include "http.h"
-#include "utils.h"
+#include "../../http.h"
+#include "../../utils.h"
 
 typedef enum {
     s_working,

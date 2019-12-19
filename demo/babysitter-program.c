@@ -4,9 +4,9 @@
  * Licensed under The MIT License, see file LICENSE.txt in this source tree.
  */
 
-#include "generic.h"
-#include "error_stack.h"
-#include "utils.h"
+#include "../generic.h"
+#include "../error_stack.h"
+#include "../utils.h"
 
 #include <errno.h>
 #include <string.h>

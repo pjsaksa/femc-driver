@@ -6,9 +6,9 @@
 
 #include "udplogger.h"
 
-#include "generic.h"
-#include "dispatcher.h"
-#include "utils.h"
+#include "../generic.h"
+#include "../dispatcher.h"
+#include "../utils.h"
 
 #include <errno.h>
 #include <ctype.h>

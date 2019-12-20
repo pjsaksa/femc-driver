@@ -61,6 +61,11 @@ static bool resize_fd_block(unsigned int fd)
     return true;
 }
 
+bool dispatcher_init()
+{
+    return true;
+}
+
 bool dispatcher_poll(fdd_msec_t msec)
 {
     const int       nfds = (nfds_r > nfds_w) ? nfds_r : nfds_w;

@@ -328,6 +328,8 @@ bool fdd_main(fdd_msec_t max_msec)
             return false;
         }
 
+        dispatcher_init();
+
         initialized = true;
     }
 

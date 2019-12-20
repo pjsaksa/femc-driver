@@ -11,6 +11,7 @@ typedef enum {
     fdd_context_main = 1,
     //
     fdd_context_select,
+    fdd_context_zmq,
     //
     fdu_context_aac,
     fdu_context_bufio,

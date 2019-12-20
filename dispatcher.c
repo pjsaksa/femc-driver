@@ -328,7 +328,7 @@ bool fdd_main(fdd_msec_t max_msec)
             return false;
         }
 
-        dispatcher_init();
+        fdd_impl_api->init();
 
         initialized = true;
     }
@@ -348,7 +348,7 @@ bool fdd_main(fdd_msec_t max_msec)
 
     while (running
            && (dispatcher_timers
-               || !dispatcher_empty()))
+               || !fdd_impl_api->empty()))
     {
         fdd_msec_t msec = FDD_INFINITE;
 
@@ -421,7 +421,7 @@ bool fdd_main(fdd_msec_t max_msec)
                 msec = max_msec;
         }
 
-        if (!dispatcher_poll(msec))
+        if (!fdd_impl_api->poll(msec))
             return false;
 
         if (max_msec > 0 && max_msec < FDD_INFINITE) {
@@ -515,3 +515,30 @@ bool fdd_open_logfile(const char* filename, int options)
 
     return fde_pop_context(this_error_context, ectx);
 }
+
+// ------------------------------------------------------------
+
+bool fdd_add_input(int fd, fdd_service_input* service)
+{
+    return fdd_impl_api->add_input(fd, service);
+}
+
+bool fdd_add_output(int fd, fdd_service_output* service)
+{
+    return fdd_impl_api->add_output(fd, service);
+}
+
+bool fdd_remove_input(int fd)
+{
+    return fdd_impl_api->remove_input(fd);
+}
+
+bool fdd_remove_output(int fd)
+{
+    return fdd_impl_api->remove_output(fd);
+}
+
+// ------------------------------------------------------------
+
+extern const fdd_impl_api_t* fdd_impl_api WEAK_LINKAGE;
+const fdd_impl_api_t* fdd_impl_api = &fdd_impl_select;

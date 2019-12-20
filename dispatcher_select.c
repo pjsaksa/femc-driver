@@ -61,12 +61,12 @@ static bool resize_fd_block(unsigned int fd)
     return true;
 }
 
-bool dispatcher_init()
+static bool SELECT_init()
 {
     return true;
 }
 
-bool dispatcher_poll(fdd_msec_t msec)
+static bool SELECT_poll(fdd_msec_t msec)
 {
     const int       nfds = (nfds_r > nfds_w) ? nfds_r : nfds_w;
     struct timeval  tv;
@@ -123,13 +123,13 @@ bool dispatcher_poll(fdd_msec_t msec)
     return true;
 }
 
-bool dispatcher_empty(void)
+static bool SELECT_empty(void)
 {
     return nfds_r == 0
         && nfds_w == 0;
 }
 
-bool fdd_add_input(int fd, fdd_service_input* service)
+static bool SELECT_add_input(int fd, fdd_service_input* service)
 {
 #ifdef FD_DEBUG
     if (!service
@@ -164,7 +164,7 @@ bool fdd_add_input(int fd, fdd_service_input* service)
     return true;
 }
 
-bool fdd_add_output(int fd, fdd_service_output* service)
+static bool SELECT_add_output(int fd, fdd_service_output* service)
 {
 #ifdef FD_DEBUG
     if (!service
@@ -199,7 +199,7 @@ bool fdd_add_output(int fd, fdd_service_output* service)
     return true;
 }
 
-bool fdd_remove_input(int fd)
+static bool SELECT_remove_input(int fd)
 {
 #ifdef FD_DEBUG
     if (fd < 0) {
@@ -229,7 +229,7 @@ bool fdd_remove_input(int fd)
     return true;
 }
 
-bool fdd_remove_output(int fd)
+static bool SELECT_remove_output(int fd)
 {
 #ifdef FD_DEBUG
     if (fd < 0) {
@@ -258,3 +258,16 @@ bool fdd_remove_output(int fd)
 
     return true;
 }
+
+// ------------------------------------------------------------
+
+const fdd_impl_api_t fdd_impl_select ={
+    .init  = SELECT_init,
+    .poll  = SELECT_poll,
+    .empty = SELECT_empty,
+    //
+    .add_input     = SELECT_add_input,
+    .add_output    = SELECT_add_output,
+    .remove_input  = SELECT_remove_input,
+    .remove_output = SELECT_remove_output,
+};

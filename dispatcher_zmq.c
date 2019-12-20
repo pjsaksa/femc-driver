@@ -176,7 +176,7 @@ static void reuse_removed_entries(void)
 
 // ------------------------------------------------------------
 
-bool dispatcher_init(void)
+static bool ZMQ_init(void)
 {
     if (f_poller != NULL) {
         return true;
@@ -198,10 +198,10 @@ bool dispatcher_init(void)
     return fde_pop_context(this_error_context, ectx);
 }
 
-bool dispatcher_poll(fdd_msec_t msec)
+static bool ZMQ_poll(fdd_msec_t msec)
 {
     if (!f_poller) {
-        fde_push_consistency_failure("dispatcher_init() not called");
+        fde_push_consistency_failure("ZMQ_init() not called");
         return false;
     }
     //
@@ -280,20 +280,20 @@ bool dispatcher_poll(fdd_msec_t msec)
     return true;
 }
 
-bool dispatcher_empty(void)
+static bool ZMQ_empty(void)
 {
     return f_entries_count == 0;
 }
 
-bool fdd_add_input(int fd,
-                   fdd_service_input* service)
+static bool ZMQ_add_input(int fd,
+                          fdd_service_input* service)
 {
     const fde_node_t* ectx = fde_push_context(this_error_context);
     if (!ectx)
         return false;
     //
     if (f_poller == NULL
-        && !dispatcher_init())
+        && !ZMQ_init())
     {
         return false;
     }
@@ -350,15 +350,15 @@ bool fdd_add_input(int fd,
     return fde_pop_context(this_error_context, ectx);
 }
 
-bool fdd_add_output(int fd,
-                    fdd_service_output* service)
+static bool ZMQ_add_output(int fd,
+                           fdd_service_output* service)
 {
     const fde_node_t* ectx = fde_push_context(this_error_context);
     if (!ectx)
         return false;
     //
     if (f_poller == NULL
-        && !dispatcher_init())
+        && !ZMQ_init())
     {
         return false;
     }
@@ -415,14 +415,14 @@ bool fdd_add_output(int fd,
     return fde_pop_context(this_error_context, ectx);
 }
 
-bool fdd_remove_input(int fd)
+static bool ZMQ_remove_input(int fd)
 {
     const fde_node_t* ectx = fde_push_context(this_error_context);
     if (!ectx)
         return false;
     //
     if (f_poller == NULL
-        && !dispatcher_init())
+        && !ZMQ_init())
     {
         return false;
     }
@@ -468,14 +468,14 @@ bool fdd_remove_input(int fd)
     return fde_pop_context(this_error_context, ectx);
 }
 
-bool fdd_remove_output(int fd)
+static bool ZMQ_remove_output(int fd)
 {
     const fde_node_t* ectx = fde_push_context(this_error_context);
     if (!ectx)
         return false;
     //
     if (f_poller == NULL
-        && !dispatcher_init())
+        && !ZMQ_init())
     {
         return false;
     }
@@ -520,3 +520,16 @@ bool fdd_remove_output(int fd)
 
     return fde_pop_context(this_error_context, ectx);
 }
+
+// ------------------------------------------------------------
+
+const fdd_impl_api_t fdd_impl_zmq ={
+    .init  = ZMQ_init,
+    .poll  = ZMQ_poll,
+    .empty = ZMQ_empty,
+    //
+    .add_input     = ZMQ_add_input,
+    .add_output    = ZMQ_add_output,
+    .remove_input  = ZMQ_remove_input,
+    .remove_output = ZMQ_remove_output,
+};

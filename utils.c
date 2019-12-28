@@ -115,7 +115,7 @@ static bool fdu_bufio_got_input(void* service_v, int fd)
     if (FILLED == SIZE) {
         CAN_XFER = true;
 
-        return fdd_remove_input(&service->input_service, fd)
+        return fdd_remove_input(fd)
             && fde_pop_context(fdu_context_bufio, ectx);
     }
 
@@ -124,7 +124,7 @@ static bool fdu_bufio_got_input(void* service_v, int fd)
     if (CAN_XFER) {
         CAN_XFER = false;
 
-        if (!fdd_add_input(&service->input_service, fd))
+        if (!fdd_add_input(fd, &service->input_service))
             return false;
     }
 
@@ -184,7 +184,7 @@ static bool fdu_bufio_got_output(void* service_v, int fd)
     if (!FILLED) {
         CAN_XFER = true;
 
-        return fdd_remove_output(&service->output_service, fd)
+        return fdd_remove_output(fd)
             && fde_pop_context(fdu_context_bufio, ectx);
     }
 
@@ -193,7 +193,7 @@ static bool fdu_bufio_got_output(void* service_v, int fd)
     if (CAN_XFER) {
         CAN_XFER = false;
 
-        if (!fdd_add_output(&service->output_service, fd))
+        if (!fdd_add_output(fd, &service->output_service))
             return false;
     }
 
@@ -310,8 +310,8 @@ void fdu_bufio_close(fdu_bufio_buffer* buffer)
 
     if (!buffer->can_xfer) {
         switch (service->type) {
-        case bufio_input: fdd_remove_input(&service->input_service, fd); break;
-        case bufio_output: fdd_remove_output(&service->output_service, fd); break;
+        case bufio_input: fdd_remove_input(fd); break;
+        case bufio_output: fdd_remove_output(fd); break;
         }
     }
 
@@ -521,11 +521,11 @@ fdu_bufio_buffer* fdu_new_input_bufio_inplace(const int fd,
                            service,
                            &fdu_bufio_got_input);
 
-    if (fdd_add_input(&service->input_service, fd)) {
+    if (fdd_add_input(fd, &service->input_service)) {
         if (fde_pop_context(fdu_context_bufio, ectx))
             return &service->buffer;    // <-- normal exit
 
-        fdd_remove_input(&service->input_service, fd);
+        fdd_remove_input(fd);
     }
 
     return 0;
@@ -589,11 +589,11 @@ fdu_bufio_buffer* fdu_new_output_bufio_inplace(const int fd,
                             service,
                             &fdu_bufio_got_output);
 
-    if (fdd_add_output(&service->output_service, fd)) {
+    if (fdd_add_output(fd, &service->output_service)) {
         if (fde_pop_context(fdu_context_bufio, ectx))
             return &service->buffer;    // <-- normal exit
 
-        fdd_remove_output(&service->output_service, fd);
+        fdd_remove_output(fd);
     }
 
     return 0;
@@ -633,7 +633,7 @@ static bool fdu_pending_connect_callback(void* pcd_v,
     int connect_error;
     socklen_t len = sizeof(connect_error);
 
-    if (!fdd_remove_output(&pcd->oserv, fd))
+    if (!fdd_remove_output(fd))
         return false;
 
     // check the real status of connect() ...
@@ -678,7 +678,7 @@ bool fdu_pending_connect(int fd, fdu_notify_connect_func callback, void* callbac
 
     // start service
 
-    return fdd_add_output(&pcd->oserv, fd)
+    return fdd_add_output(fd, &pcd->oserv)
         && fde_safe_pop_context(fdu_context_connect, ectx);
 }
 
@@ -753,7 +753,7 @@ static void fdu_dns_service_shutdown(void)
         fde_push_stdlib_error("kill", errno);
 
     if (dns_service->head) {
-        fdd_remove_input(&dns_service->iserv, dns_service->fd_in);
+        fdd_remove_input(dns_service->fd_in);
 
         while (dns_service->head) {
             fdu_dns_service_query* tbd = dns_service->head;
@@ -840,7 +840,7 @@ static bool fdu_dns_service_got_answer(void* context, int fd)
         if (!dns_service->head) {
             dns_service->tail = 0;
 
-            fdd_remove_input(&dns_service->iserv, dns_service->fd_in);
+            fdd_remove_input(dns_service->fd_in);
         }
 
         free_dns_query_node(current);
@@ -1035,7 +1035,7 @@ bool fdu_dnsserv_lookup(const char* name, fdu_dnsserv_notify_func notify, void* 
         dns_service->head = new_query;
         dns_service->tail = new_query;
 
-        fdd_add_input(&dns_service->iserv, dns_service->fd_in);
+        fdd_add_input(dns_service->fd_in, &dns_service->iserv);
     }
 
     return fde_safe_pop_context(fdu_context_dnsserv, ectx);
@@ -1078,7 +1078,7 @@ static bool fdu_aac_new_connection(void* service_v,
 
         fde_push_stdlib_error("accept", errno);
 
-        fdd_remove_input(&service->listening_service, server_fd);
+        fdd_remove_input(server_fd);
         fdu_safe_close(server_fd);
         free(service);
         return false;
@@ -1121,7 +1121,7 @@ aac_service_t* fdu_auto_accept_connection(int server_fd,
                            service,
                            &fdu_aac_new_connection);
 
-    if (!fdd_add_input(&service->listening_service, server_fd)) {
+    if (!fdd_add_input(server_fd, &service->listening_service)) {
         free(service);
         fdu_safe_close(server_fd);
         return 0;
@@ -1143,7 +1143,7 @@ bool fdu_close_auto_accept(aac_service_t* service)
     }
     //
 
-    fdd_remove_input(&service->listening_service, service->server_fd);
+    fdd_remove_input(service->server_fd);
     free(service);
     fdu_safe_close(service->server_fd);
 
@@ -1257,7 +1257,7 @@ bool fdu_signalfd_init(fdu_signalfd_service* service,
         return false;
     }
 
-    return fdd_add_input(&service->input_service, service->fd)
+    return fdd_add_input(service->fd, &service->input_service)
         && fde_safe_pop_context(fdu_context_signalfd, ectx);
 }
 
@@ -1303,8 +1303,8 @@ bool fdu_signalfd_close(fdu_signalfd_service* service)
 
     bool success = true;
 
-    if (! fdd_remove_input(&service->input_service, service->fd) ) success = false;
-    if (! fdu_safe_close(service->fd)                            ) success = false;
+    if (! fdd_remove_input(service->fd) ) success = false;
+    if (! fdu_safe_close(service->fd)   ) success = false;
 
     service->fd = -1;
 

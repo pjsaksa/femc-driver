@@ -8,6 +8,7 @@
 #define FEMC_DRIVER_DISPATCHER_IMPL_HEADER
 
 #include "dispatcher.h"
+#include "dispatcher_api.h"
 
 #include <time.h>
 
@@ -28,5 +29,9 @@ struct fdd_timer_node {
 
     struct fdd_timer_node* next;
 };
+
+// ------------------------------------------------------------
+
+bool resolve_notify_return(bool notify_ok);
 
 #endif

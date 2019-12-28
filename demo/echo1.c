@@ -60,9 +60,9 @@ static bool free_echo1_service(echo1_service_t* service)
     //
 
     if (!service->input_closed && !service->can_read)
-        fdd_remove_input(&service->input_service, service->fd);
+        fdd_remove_input(service->fd);
     if (!service->can_write)
-        fdd_remove_output(&service->output_service, service->fd);
+        fdd_remove_output(service->fd);
     fdu_safe_close(service->fd);
 
     free(service);
@@ -91,7 +91,7 @@ static bool echo1_output(void* service_v, int fd)
 
     if (!service->filled) {
         service->can_write = true;
-        return fdd_remove_output(&service->output_service, fd)
+        return fdd_remove_output(fd)
             && fde_safe_pop_context(this_error_context, ectx);
     }
 
@@ -108,7 +108,7 @@ static bool echo1_output(void* service_v, int fd)
 
         if (service->can_write) {
             service->can_write = false;
-            fdd_add_output(&service->output_service, fd);
+            fdd_add_output(fd, &service->output_service);
         }
 
         if (service->input_closed) {
@@ -156,7 +156,7 @@ static bool echo1_input(void* service_v, int fd)
 
     if (service->filled == BufferSize) {
         service->can_read = true;
-        return fdd_remove_input(&service->input_service, fd)
+        return fdd_remove_input(fd)
             && fde_safe_pop_context(this_error_context, ectx);
     }
 
@@ -164,7 +164,7 @@ static bool echo1_input(void* service_v, int fd)
 
     if (service->can_read) {
         service->can_read = false;
-        fdd_add_input(&service->input_service, fd);
+        fdd_add_input(fd, &service->input_service);
     }
 
     if (i > 0) {
@@ -193,7 +193,7 @@ static bool echo1_input(void* service_v, int fd)
             service->input_closed = true;
 
             if (!service->can_read)
-                fdd_remove_input(&service->input_service, fd);
+                fdd_remove_input(fd);
         }
         else if (!free_echo1_service(service))
             return false;
@@ -228,8 +228,8 @@ static bool new_echo1_service(void* UNUSED(context), int fd)
     fdd_init_service_input (&service->input_service,  service, &echo1_input);
     fdd_init_service_output(&service->output_service, service, &echo1_output);
 
-    if (!fdd_add_input(&service->input_service, fd)
-        || !fdd_add_output(&service->output_service, fd))
+    if (!fdd_add_input(fd, &service->input_service)
+        || !fdd_add_output(fd, &service->output_service))
     {
         free(service);
         fdu_safe_close(fd);

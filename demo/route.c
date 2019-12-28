@@ -84,10 +84,10 @@ static void free_two_way_route(two_way_route_t* service)
 
     // remove from dispatcher
 
-    if (r1->input_fd >= 0 && !r1->can_read) fdd_remove_input(&r1->input_service, r1->input_fd);
-    if (r1->output_fd >= 0 && !r1->can_write) fdd_remove_output(&r1->output_service, r1->output_fd);
-    if (r2->input_fd >= 0 && !r2->can_read) fdd_remove_input(&r2->input_service, r2->input_fd);
-    if (r2->output_fd >= 0 && !r2->can_write) fdd_remove_output(&r2->output_service, r2->output_fd);
+    if (r1->input_fd >= 0 && !r1->can_read) fdd_remove_input(r1->input_fd);
+    if (r1->output_fd >= 0 && !r1->can_write) fdd_remove_output(r1->output_fd);
+    if (r2->input_fd >= 0 && !r2->can_read) fdd_remove_input(r2->input_fd);
+    if (r2->output_fd >= 0 && !r2->can_write) fdd_remove_output(r2->output_fd);
 
     free(service);
     fde_safe_pop_context(this_error_context, ectx);
@@ -129,7 +129,7 @@ static bool route_close_input(one_way_route_t* this, int fd, int error)
     if (this->can_read)
         this->can_read = false;
     else
-        fdd_remove_input(&this->input_service, fd);
+        fdd_remove_input(fd);
 
     this->input_fd = -1;
 
@@ -198,7 +198,7 @@ static bool route_close_output(one_way_route_t* this, int fd, int error)
     if (this->can_write)
         this->can_write = false;
     else
-        fdd_remove_output(&this->output_service, fd);
+        fdd_remove_output(fd);
 
     this->output_fd = -1;
 
@@ -254,7 +254,7 @@ static bool route_input(void* r1_v, int fd)
         r1->can_read = true;
 
         return fde_push_debug_message("in: if (r1->filled == buffer_size)")
-            && fdd_remove_input(&r1->input_service, fd)
+            && fdd_remove_input(fd)
             && fde_safe_pop_context(this_error_context, ectx);
     }
 
@@ -263,7 +263,7 @@ static bool route_input(void* r1_v, int fd)
     if (r1->can_read) {
         r1->can_read = false;
 
-        if (!fdd_add_input(&r1->input_service, fd))
+        if (!fdd_add_input(fd, &r1->input_service))
             return false;
     }
 
@@ -308,7 +308,7 @@ static bool route_output(void* r1_v, int fd)
         r1->can_write = true;
 
         return fde_push_debug_message("in: if (!r1->filled)")
-            && fdd_remove_output(&r1->output_service, fd)
+            && fdd_remove_output(fd)
             && fde_safe_pop_context(this_error_context, ectx);
     }
 
@@ -331,7 +331,7 @@ static bool route_output(void* r1_v, int fd)
         else if (r1->can_write) {
             r1->can_write = false;
 
-            if (!fdd_add_output(&r1->output_service, fd))
+            if (!fdd_add_output(fd, &r1->output_service))
                 return false;
         }
     }
@@ -386,10 +386,10 @@ static bool route_connected(void* rr_v,
 
     rr->there.output_fd = rr->back.input_fd = fd;
 
-    fdd_add_input(&rr->there.input_service, rr->there.input_fd);
-    fdd_add_output(&rr->there.output_service, rr->there.output_fd);
-    fdd_add_input(&rr->back.input_service, rr->back.input_fd);
-    fdd_add_output(&rr->back.output_service, rr->back.output_fd);
+    fdd_add_input(rr->there.input_fd, &rr->there.input_service);
+    fdd_add_output(rr->there.output_fd, &rr->there.output_service);
+    fdd_add_input(rr->back.input_fd, &rr->back.input_service);
+    fdd_add_output(rr->back.output_fd, &rr->back.output_service);
 
     return fde_safe_pop_context(this_error_context, ectx);
 }
@@ -558,7 +558,7 @@ static bool new_route_listening_service(int fd,
     service->target_address = target_address;
     service->target_port    = target_port;
 
-    if (!fdd_add_input(&service->input_service, fd)) {
+    if (!fdd_add_input(fd, &service->input_service)) {
         free(service);
         fdu_safe_close(fd);
         return false;

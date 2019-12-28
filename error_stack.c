@@ -10,6 +10,7 @@
 #include <string.h>
 
 #ifdef FD_TRACE
+#include "dispatcher.h"
 #include <errno.h>
 #endif
 

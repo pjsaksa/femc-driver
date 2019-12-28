@@ -19,7 +19,7 @@ extern FILE* fdd_logfile;
 
 // ------------------------------------------------------------
 
-typedef uint32_t fdd_context_id_t;
+typedef int fdd_context_id_t;
 typedef uint64_t fdd_msec_t;
 typedef bool (*fdd_notify_func)(void*, int);
 

@@ -29,6 +29,7 @@ struct fd_entry_s {
     //
     fdd_service_input* input_service;
     fdd_service_output* output_service;
+    void* socket;
     int fd;
 };
 
@@ -137,8 +138,26 @@ static fd_entry_t* find_entry_by_fd(int fd)
     return NULL;
 }
 
+static fd_entry_t* find_entry_by_socket(void* socket)
+{
+    if (socket == NULL) {
+        return NULL;
+    }
+
+    for (fd_entry_t* entry = f_entries;
+         entry != NULL;
+         entry = entry->next)
+    {
+        if (entry->socket == socket)
+            return entry;
+    }
+
+    return NULL;
+}
+
 static void remove_entry(fd_entry_t* old_entry)
 {
+    old_entry->socket = NULL;
     old_entry->fd = -1;
 
     // move old_entry from f_entries to f_removed_entries
@@ -533,3 +552,241 @@ const fdd_impl_api_t fdd_impl_zmq ={
     .remove_input  = ZMQ_remove_input,
     .remove_output = ZMQ_remove_output,
 };
+
+// ------------------------------------------------------------
+
+bool fdx_add_input_zmq(void* zmq_socket,
+                       fdd_service_input* service)
+{
+    const fde_node_t* ectx = fde_push_context(this_error_context);
+    if (!ectx)
+        return false;
+    //
+    if (f_poller == NULL
+        && !ZMQ_init())
+    {
+        return false;
+    }
+    if (zmq_socket == NULL
+        || service == NULL)
+    {
+        fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
+        return false;
+    }
+    //
+
+    fd_entry_t* entry = find_entry_by_socket(zmq_socket);
+    const bool exists = (entry != NULL);
+
+    if (!exists) {
+        if (f_unused_entries == NULL) {
+            allocate_new_entries();
+        }
+
+        // get entry from f_unused_entries
+
+        entry = list_pop(&f_unused_entries);
+        list_push(&f_entries, entry);
+        ++f_entries_count;
+
+        // initialize entry
+
+        memset(entry, 0, sizeof(fd_entry_t));
+        entry->socket = zmq_socket;
+    }
+    else if (entry->input_service != NULL
+             || entry->output_service == NULL)
+    {
+        fde_push_consistency_failure("error in fd service consistency");
+        return false;
+    }
+
+    //
+
+    entry->input_service = service;
+
+    //
+
+    const short zmq_events = ((entry->input_service    != NULL ? ZMQ_POLLIN  : 0)
+                              | (entry->output_service != NULL ? ZMQ_POLLOUT : 0));
+
+    if (exists) {
+        zmq_poller_modify(f_poller, zmq_socket, zmq_events);
+    }
+    else {
+        zmq_poller_add(f_poller, zmq_socket, entry, zmq_events);
+    }
+
+    return fde_pop_context(this_error_context, ectx);
+}
+
+bool fdx_add_output_zmq(void* zmq_socket,
+                        fdd_service_output* service)
+{
+    const fde_node_t* ectx = fde_push_context(this_error_context);
+    if (!ectx)
+        return false;
+    //
+    if (f_poller == NULL
+        && !ZMQ_init())
+    {
+        return false;
+    }
+    if (zmq_socket == NULL
+        || service == NULL)
+    {
+        fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
+        return false;
+    }
+    //
+
+    fd_entry_t* entry = find_entry_by_socket(zmq_socket);
+    const bool exists = (entry != NULL);
+
+    if (!exists) {
+        if (f_unused_entries == NULL) {
+            allocate_new_entries();
+        }
+
+        // get entry from f_unused_entries
+
+        entry = list_pop(&f_unused_entries);
+        list_push(&f_entries, entry);
+        ++f_entries_count;
+
+        // initialize entry
+
+        memset(entry, 0, sizeof(fd_entry_t));
+        entry->socket = zmq_socket;
+    }
+    else if (entry->input_service == NULL
+             || entry->output_service != NULL)
+    {
+        fde_push_consistency_failure("error in fd service consistency");
+        return false;
+    }
+
+    //
+
+    entry->output_service = service;
+
+    //
+
+    const short zmq_events = ((entry->input_service    != NULL ? ZMQ_POLLIN  : 0)
+                              | (entry->output_service != NULL ? ZMQ_POLLOUT : 0));
+
+    if (exists) {
+        zmq_poller_modify(f_poller, zmq_socket, zmq_events);
+    }
+    else {
+        zmq_poller_add(f_poller, zmq_socket, entry, zmq_events);
+    }
+
+    return fde_pop_context(this_error_context, ectx);
+}
+
+bool fdx_remove_input_zmq(void* zmq_socket)
+{
+    const fde_node_t* ectx = fde_push_context(this_error_context);
+    if (!ectx)
+        return false;
+    //
+    if (f_poller == NULL
+        && !ZMQ_init())
+    {
+        return false;
+    }
+    if (zmq_socket == NULL) {
+        fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
+        return false;
+    }
+    //
+
+    fd_entry_t* entry = find_entry_by_socket(zmq_socket);
+
+    if (!entry) {
+        fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
+        return false;
+    }
+    else if (entry->input_service == NULL)
+    {
+        fde_push_consistency_failure("error in fd service consistency");
+        return false;
+    }
+
+    //
+
+    entry->input_service = NULL;
+
+    //
+
+    const short zmq_events = ((entry->input_service    != NULL ? ZMQ_POLLIN  : 0)
+                              | (entry->output_service != NULL ? ZMQ_POLLOUT : 0));
+
+    if (zmq_events > 0) {
+        zmq_poller_modify(f_poller, zmq_socket, zmq_events);
+    }
+    else {
+        zmq_poller_remove(f_poller, zmq_socket);
+    }
+
+    //
+
+    remove_entry(entry);
+    --f_entries_count;
+
+    return fde_pop_context(this_error_context, ectx);
+}
+
+bool fdx_remove_output_zmq(void* zmq_socket)
+{
+    const fde_node_t* ectx = fde_push_context(this_error_context);
+    if (!ectx)
+        return false;
+    //
+    if (f_poller == NULL
+        && !ZMQ_init())
+    {
+        return false;
+    }
+    if (zmq_socket == NULL) {
+        fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
+        return false;
+    }
+    //
+
+    fd_entry_t* entry = find_entry_by_socket(zmq_socket);
+
+    if (!entry) {
+        fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
+        return false;
+    }
+    else if (entry->output_service == NULL)
+    {
+        fde_push_consistency_failure("error in fd service consistency");
+        return false;
+    }
+
+    //
+
+    entry->output_service = NULL;
+
+    //
+
+    const short zmq_events = ((entry->input_service    != NULL ? ZMQ_POLLIN  : 0)
+                              | (entry->output_service != NULL ? ZMQ_POLLOUT : 0));
+
+    if (zmq_events > 0) {
+        zmq_poller_modify(f_poller, zmq_socket, zmq_events);
+    }
+    else {
+        zmq_poller_remove(f_poller, zmq_socket);
+    }
+
+    //
+
+    remove_entry(entry);
+    --f_entries_count;
+
+    return fde_pop_context(this_error_context, ectx);
+}

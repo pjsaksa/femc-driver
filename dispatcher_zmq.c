@@ -335,13 +335,16 @@ static bool ZMQ_add_input(int fd,
         // get entry from f_unused_entries
 
         entry = list_pop(&f_unused_entries);
-        list_push(&f_entries, entry);
-        ++f_entries_count;
 
         // initialize entry
 
         memset(entry, 0, sizeof(fd_entry_t));
         entry->fd = fd;
+
+        // add entry to f_entries
+
+        list_push(&f_entries, entry);
+        ++f_entries_count;
     }
     else if (entry->input_service != NULL
              || entry->output_service == NULL)
@@ -400,13 +403,16 @@ static bool ZMQ_add_output(int fd,
         // get entry from f_unused_entries
 
         entry = list_pop(&f_unused_entries);
-        list_push(&f_entries, entry);
-        ++f_entries_count;
 
         // initialize entry
 
         memset(entry, 0, sizeof(fd_entry_t));
         entry->fd = fd;
+
+        // add entry to f_entries
+
+        list_push(&f_entries, entry);
+        ++f_entries_count;
     }
     else if (entry->input_service == NULL
              || entry->output_service != NULL)
@@ -586,13 +592,16 @@ bool fdx_add_input_zmq(void* zmq_socket,
         // get entry from f_unused_entries
 
         entry = list_pop(&f_unused_entries);
-        list_push(&f_entries, entry);
-        ++f_entries_count;
 
         // initialize entry
 
         memset(entry, 0, sizeof(fd_entry_t));
         entry->socket = zmq_socket;
+
+        // add entry to f_entries
+
+        list_push(&f_entries, entry);
+        ++f_entries_count;
     }
     else if (entry->input_service != NULL
              || entry->output_service == NULL)
@@ -651,13 +660,16 @@ bool fdx_add_output_zmq(void* zmq_socket,
         // get entry from f_unused_entries
 
         entry = list_pop(&f_unused_entries);
-        list_push(&f_entries, entry);
-        ++f_entries_count;
 
         // initialize entry
 
         memset(entry, 0, sizeof(fd_entry_t));
         entry->socket = zmq_socket;
+
+        // add entry to f_entries
+
+        list_push(&f_entries, entry);
+        ++f_entries_count;
     }
     else if (entry->input_service == NULL
              || entry->output_service != NULL)

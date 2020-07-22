@@ -6,6 +6,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(femc-driver)
 
+add_subdirectory(funode)
+
 #
 # femc-driver
 #

@@ -1,0 +1,90 @@
+// Femc Driver
+// Copyright (C) 2020 Pauli Saksa
+//
+// Licensed under The MIT License, see file LICENSE.txt in this source tree.
+
+// included in "fdbuffer.h"
+
+#include <algorithm>
+#include <cerrno>
+#include <cstring>
+
+#include <unistd.h>
+
+template< unsigned int SizeT >
+void FdBuffer<SizeT>::consume(unsigned int bytes)
+{
+    if (bytes >= filled)
+    {
+        filled = 0;
+    }
+    else if (bytes > 0)
+    {
+        filled -= bytes;
+        memmove(buffer, buffer + bytes, filled);
+    }
+}
+
+template< unsigned int SizeT >
+unsigned int FdBuffer<SizeT>::produce(const char* data,
+                                      unsigned int bytes)
+{
+    const unsigned int chunk = std::min(bytes, space());
+
+    if (chunk > 0) {
+        memcpy(buffer + filled, data, chunk);
+        filled += chunk;
+    }
+
+    return chunk;
+}
+
+template< unsigned int SizeT >
+int FdBuffer<SizeT>::read(const int fd)
+{
+    if (full()) {
+        return 0;
+    }
+
+ retry:
+    const int i = ::read(fd,
+                         buffer + filled,
+                         space());
+
+    if (i > 0) {
+        filled += i;
+    }
+    else if (i < 0
+             && (errno == EINTR
+                 || errno == EAGAIN))
+    {
+        goto retry;
+    }
+
+    return i;
+}
+
+template< unsigned int SizeT >
+int FdBuffer<SizeT>::write(const int fd)
+{
+    if (empty()) {
+        return 0;
+    }
+
+ retry:
+    const int i = ::write(fd,
+                          buffer,
+                          filled);
+
+    if (i > 0) {
+        consume(i);
+    }
+    else if (i < 0
+             && (errno == EINTR
+                 || errno == EAGAIN))
+    {
+        goto retry;
+    }
+
+    return i;
+}

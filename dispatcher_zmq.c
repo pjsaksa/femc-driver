@@ -483,12 +483,12 @@ static bool ZMQ_remove_input(int fd)
     }
     else {
         zmq_poller_remove_fd(f_poller, fd);
+
+        //
+
+        remove_entry(entry);
+        --f_entries_count;
     }
-
-    //
-
-    remove_entry(entry);
-    --f_entries_count;
 
     return fde_pop_context(this_error_context, ectx);
 }
@@ -536,12 +536,12 @@ static bool ZMQ_remove_output(int fd)
     }
     else {
         zmq_poller_remove_fd(f_poller, fd);
+
+        //
+
+        remove_entry(entry);
+        --f_entries_count;
     }
-
-    //
-
-    remove_entry(entry);
-    --f_entries_count;
 
     return fde_pop_context(this_error_context, ectx);
 }

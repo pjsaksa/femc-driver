@@ -1,5 +1,5 @@
 /* Femc Driver
- * Copyright (C) 2016-2019 Pauli Saksa
+ * Copyright (C) 2016-2020 Pauli Saksa
  *
  * Licensed under The MIT License, see file LICENSE.txt in this source tree.
  */

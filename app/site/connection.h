@@ -1,11 +1,9 @@
-/* Femc Driver - site app
- * Copyright (C) 2018-2019 Pauli Saksa
- *
- * Licensed under The MIT License, see file LICENSE.txt in this source tree.
- */
+// Femc Driver - site app
+// Copyright (C) 2018-2020 Pauli Saksa
+//
+// Licensed under The MIT License, see file LICENSE.txt in this source tree.
 
-#ifndef FEMC_DRIVER_APP_SITE_CONNECTION_HEADER
-#define FEMC_DRIVER_APP_SITE_CONNECTION_HEADER
+#pragma once
 
 #include "../../http.h"
 #include "../../utils.h"
@@ -32,6 +30,3 @@ typedef struct {
     fdu_bufio_buffer* worker_input;
     fdu_bufio_buffer* worker_output;
 } fda_site_connection;
-
-
-#endif

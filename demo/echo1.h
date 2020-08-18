@@ -1,14 +1,10 @@
-/* Femc Driver
- * Copyright (C) 2015-2019 Pauli Saksa
- *
- * Licensed under The MIT License, see file LICENSE.txt in this source tree.
- */
+// Femc Driver
+// Copyright (C) 2015-2020 Pauli Saksa
+//
+// Licensed under The MIT License, see file LICENSE.txt in this source tree.
 
-#ifndef FEMC_DRIVER_ECHO1_HEADER
-#define FEMC_DRIVER_ECHO1_HEADER
+#pragma once
 
 #include <stdbool.h>
 
 bool echo1_start(unsigned short);
-
-#endif

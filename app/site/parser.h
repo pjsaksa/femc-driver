@@ -1,11 +1,9 @@
-/* Femc Driver - site app
- * Copyright (C) 2018-2019 Pauli Saksa
- *
- * Licensed under The MIT License, see file LICENSE.txt in this source tree.
- */
+// Femc Driver - site app
+// Copyright (C) 2018-2020 Pauli Saksa
+//
+// Licensed under The MIT License, see file LICENSE.txt in this source tree.
 
-#ifndef FEMC_DRIVER_APP_SITE_PARSER_HEADER
-#define FEMC_DRIVER_APP_SITE_PARSER_HEADER
+#pragma once
 
 #include "../../utils.h"
 
@@ -30,5 +28,3 @@ void fda_site_parser_client_output_closed(fdu_bufio_buffer* output,
                                           void* connection,
                                           int fd,
                                           int write_error);
-
-#endif

@@ -1,11 +1,9 @@
-/* Femc Driver
- * Copyright (C) 2013-2019 Pauli Saksa
- *
- * Licensed under The MIT License, see file LICENSE.txt in this source tree.
- */
+// Femc Driver
+// Copyright (C) 2013-2020 Pauli Saksa
+//
+// Licensed under The MIT License, see file LICENSE.txt in this source tree.
 
-#ifndef FEMC_DRIVER_ERROR_STACK_FWD_HEADER
-#define FEMC_DRIVER_ERROR_STACK_FWD_HEADER
+#pragma once
 
 typedef enum {
     fdd_context_main = 1,
@@ -98,5 +96,3 @@ enum {
     fde_resource_buffer_overflow,
     fde_resource_buffer_underflow,
 };
-
-#endif

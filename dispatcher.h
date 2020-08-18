@@ -1,11 +1,9 @@
-/* Femc Driver
- * Copyright (C) 2015-2019 Pauli Saksa
- *
- * Licensed under The MIT License, see file LICENSE.txt in this source tree.
- */
+// Femc Driver
+// Copyright (C) 2015-2020 Pauli Saksa
+//
+// Licensed under The MIT License, see file LICENSE.txt in this source tree.
 
-#ifndef FEMC_DRIVER_DISPATCHER_HEADER
-#define FEMC_DRIVER_DISPATCHER_HEADER
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -63,5 +61,3 @@ bool fdd_open_logfile(const char* filename, int options);
 typedef bool (*error_resolver_func)(bool notify_ok);
 
 void fdd_set_error_resolver(error_resolver_func new_resolver);
-
-#endif

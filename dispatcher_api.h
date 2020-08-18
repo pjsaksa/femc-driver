@@ -1,11 +1,9 @@
-/* Femc Driver
- * Copyright (C) 2019 Pauli Saksa
- *
- * Licensed under The MIT License, see file LICENSE.txt in this source tree.
- */
+// Femc Driver
+// Copyright (C) 2019-2020 Pauli Saksa
+//
+// Licensed under The MIT License, see file LICENSE.txt in this source tree.
 
-#ifndef FEMC_DRIVER_DISPATCHER_API_HEADER
-#define FEMC_DRIVER_DISPATCHER_API_HEADER
+#pragma once
 
 #include "dispatcher.h"
 
@@ -39,5 +37,3 @@ extern const fdd_impl_api_t fdd_impl_zmq;
 //
 
 extern const fdd_impl_api_t* fdd_impl_api;
-
-#endif

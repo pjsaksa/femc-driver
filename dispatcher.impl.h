@@ -1,11 +1,9 @@
-/* Femc Driver
- * Copyright (C) 2015-2019 Pauli Saksa
- *
- * Licensed under The MIT License, see file LICENSE.txt in this source tree.
- */
+// Femc Driver
+// Copyright (C) 2015-2020 Pauli Saksa
+//
+// Licensed under The MIT License, see file LICENSE.txt in this source tree.
 
-#ifndef FEMC_DRIVER_DISPATCHER_IMPL_HEADER
-#define FEMC_DRIVER_DISPATCHER_IMPL_HEADER
+#pragma once
 
 #include "dispatcher.h"
 #include "dispatcher_api.h"
@@ -33,5 +31,3 @@ struct fdd_timer_node {
 // ------------------------------------------------------------
 
 bool resolve_notify_return(bool notify_ok);
-
-#endif

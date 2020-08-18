@@ -1,5 +1,5 @@
 /* Femc Driver - babysitter demo
- * Copyright (C) 2017-2019 Pauli Saksa
+ * Copyright (C) 2017-2020 Pauli Saksa
  *
  * Licensed under The MIT License, see file LICENSE.txt in this source tree.
  */

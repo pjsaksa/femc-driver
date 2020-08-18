@@ -1,11 +1,9 @@
-/* Femc Driver
- * Copyright (C) 2013-2019 Pauli Saksa
- *
- * Licensed under The MIT License, see file LICENSE.txt in this source tree.
- */
+// Femc Driver
+// Copyright (C) 2013-2020 Pauli Saksa
+//
+// Licensed under The MIT License, see file LICENSE.txt in this source tree.
 
-#ifndef FEMC_DRIVER_ERROR_STACK_HEADER
-#define FEMC_DRIVER_ERROR_STACK_HEADER
+#pragma once
 
 #include "error_stack.fwd.h"
 
@@ -97,6 +95,4 @@ static inline bool fde_safe_pop_context(uint32_t context, const fde_node_t* ectx
 # define FDE_TRACE() do { fprintf(stderr, "--  %s\n", __func__); } while(0)
 #else
 # define FDE_TRACE() do{}while(0)
-#endif
-
 #endif

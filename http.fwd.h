@@ -1,11 +1,9 @@
-/* Femc Driver
- * Copyright (C) 2016-2019 Pauli Saksa
- *
- * Licensed under The MIT License, see file LICENSE.txt in this source tree.
- */
+// Femc Driver
+// Copyright (C) 2016-2020 Pauli Saksa
+//
+// Licensed under The MIT License, see file LICENSE.txt in this source tree.
 
-#ifndef FEMC_DRIVER_HTTP_FWD_HEADER
-#define FEMC_DRIVER_HTTP_FWD_HEADER
+#pragma once
 
 enum { MaxContentLength = 64 * 1024 };
 enum { ContentTypeSize  = 64 };
@@ -29,6 +27,4 @@ typedef enum {
     fdu_http_version_1_1,
 } fdu_http_version_t;
 
-typedef struct fdu_http_spec_t_ fdu_http_spec_t;
-
-#endif
+typedef struct fdu_http_ops_t_ fdu_http_ops_t;

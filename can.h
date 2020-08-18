@@ -1,11 +1,9 @@
-/* Femc Driver
- * Copyright (C) 2016-2019 Pauli Saksa
- *
- * Licensed under The MIT License, see file LICENSE.txt in this source tree.
- */
+// Femc Driver
+// Copyright (C) 2016-2020 Pauli Saksa
+//
+// Licensed under The MIT License, see file LICENSE.txt in this source tree.
 
-#ifndef FEMC_DRIVER_CAN_HEADER
-#define FEMC_DRIVER_CAN_HEADER
+#pragma once
 
 #include "can.fwd.h"
 
@@ -33,5 +31,3 @@ bool fdu_s11n_write_can_bin(const fdu_can_frame_t*, unsigned char**, const unsig
 
 bool fdu_s11n_read_can_txt(fdu_can_frame_t*, const unsigned char**, const unsigned char*);
 bool fdu_s11n_write_can_txt(const fdu_can_frame_t*, unsigned char**, const unsigned char*, bool);
-
-#endif

@@ -1,3 +1,8 @@
+# Femc Driver
+# Copyright (C) 2020 Pauli Saksa
+#
+# Licensed under The MIT License, see file LICENSE.txt in this source tree.
+
 cmake_minimum_required(VERSION 3.0)
 project(femc-driver)
 

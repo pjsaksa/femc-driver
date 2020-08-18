@@ -1,11 +1,9 @@
-/* Femc Driver
- * Copyright (C) 2015-2019 Pauli Saksa
- *
- * Licensed under The MIT License, see file LICENSE.txt in this source tree.
- */
+// Femc Driver
+// Copyright (C) 2015-2020 Pauli Saksa
+//
+// Licensed under The MIT License, see file LICENSE.txt in this source tree.
 
-#ifndef FEMC_DRIVER_UTILS_HEADER
-#define FEMC_DRIVER_UTILS_HEADER
+#pragma once
 
 #include "dispatcher.h"
 #include "utils.fwd.h"
@@ -208,5 +206,3 @@ bool fdu_move_fd(int oldfd, int newfd);
 enum { FDU_PIDFILE_ONLYCHECK = 0x1 };                   // don't hold lock, don't write pid
 
 bool fdu_pidfile(const char* filename, int options); // >=0
-
-#endif

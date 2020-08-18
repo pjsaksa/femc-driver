@@ -1,11 +1,9 @@
-/* Femc Driver
- * Copyright (C) 2015-2019 Pauli Saksa
- *
- * Licensed under The MIT License, see file LICENSE.txt in this source tree.
- */
+// Femc Driver
+// Copyright (C) 2015-2020 Pauli Saksa
+//
+// Licensed under The MIT License, see file LICENSE.txt in this source tree.
 
-#ifndef FEMC_DRIVER_GENERIC_HEADER
-#define FEMC_DRIVER_GENERIC_HEADER
+#pragma once
 
 // attributes
 
@@ -41,6 +39,4 @@
 # define MARKER         do {} while(0)
 # define MARKER1(X)     do {} while(0)
 # define MARKER2(X1,X2) do {} while(0)
-#endif
-
 #endif

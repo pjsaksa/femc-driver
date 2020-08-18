@@ -1,11 +1,9 @@
-/* Femc Driver
- * Copyright (C) 2013-2019 Pauli Saksa
- *
- * Licensed under The MIT License, see file LICENSE.txt in this source tree.
- */
+// Femc Driver
+// Copyright (C) 2013-2020 Pauli Saksa
+//
+// Licensed under The MIT License, see file LICENSE.txt in this source tree.
 
-#ifndef FEMC_DRIVER_S11N_HEADER
-#define FEMC_DRIVER_S11N_HEADER
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -46,5 +44,3 @@ bool fdu_s11n_write_double(const double*, unsigned char**, const unsigned char*)
 
 bool fdu_s11n_write_bytes(const unsigned char*, const unsigned char*,   // value start, end
                           unsigned char**, const unsigned char*);       // buffer start, end
-
-#endif

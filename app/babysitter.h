@@ -1,11 +1,9 @@
-/* Femc Driver - babysitter app
- * Copyright (C) 2017-2019 Pauli Saksa
- *
- * Licensed under The MIT License, see file LICENSE.txt in this source tree.
- */
+// Femc Driver - babysitter app
+// Copyright (C) 2017-2020 Pauli Saksa
+//
+// Licensed under The MIT License, see file LICENSE.txt in this source tree.
 
-#ifndef FEMC_DRIVER_APP_BABYSITTER_HEADER
-#define FEMC_DRIVER_APP_BABYSITTER_HEADER
+#pragma once
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -35,5 +33,3 @@ typedef void (*fda_babysitter_process_callback)(const fda_babysitter_public* api
 
 fda_babysitter_public* fda_babysitter_new_service(fda_babysitter_process_callback alive,
                                                   fda_babysitter_process_callback dead);
-
-#endif

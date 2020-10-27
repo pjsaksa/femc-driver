@@ -42,8 +42,7 @@ static bool new_connection(const fda_site_config* config, int fd)
 
     const size_t total_size = (sizeof_connection
                                + 2 * sizeof_fdu_bufio_service
-                               + 2 * buffer_size
-                               + config->sizeof_request);
+                               + 2 * buffer_size);
 
     //
 
@@ -65,34 +64,28 @@ static bool new_connection(const fda_site_config* config, int fd)
         oserv_mem   = init_memory_area_cont(&counter, sizeof_fdu_bufio_service),
         obuf_mem    = init_memory_area_cont(&counter, buffer_size);
 
-    fdu_bufio_buffer* is = 0;
-    fdu_bufio_buffer* os = 0;
+    fdu_bufio_buffer* is = fdu_new_input_bufio_inplace(fd,
+                                                       iserv_mem,
+                                                       ibuf_mem,
+                                                       connection,
+                                                       fda_site_parser_client_got_input,
+                                                       fda_site_parser_client_input_closed);
+    fdu_bufio_buffer* os = fdu_new_output_bufio_inplace(fd,
+                                                        oserv_mem,
+                                                        obuf_mem,
+                                                        connection,
+                                                        fda_site_parser_client_got_output,
+                                                        fda_site_parser_client_output_closed);
 
-    if ((is =fdu_new_input_bufio_inplace(fd,
-                                         iserv_mem,
-                                         ibuf_mem,
-                                         connection,
-                                         fda_site_parser_client_got_input,
-                                         fda_site_parser_client_input_closed))
-        && (os =fdu_new_output_bufio_inplace(fd,
-                                             oserv_mem,
-                                             obuf_mem,
-                                             connection,
-                                             fda_site_parser_client_got_output,
-                                             fda_site_parser_client_output_closed)))
+    if (is != NULL
+        && os != NULL)
     {
         connection->state          = s_parsing_request;
         connection->client_input   = is;
         connection->client_output  = os;
-        connection->request_memory = init_memory_area_cont(&counter,
-                                                           config->sizeof_request);
-        connection->worker_input   = 0;
-        connection->worker_output  = 0;
 
         fdu_init_http_request_parser(&connection->parser,
-                                     &connection->request_memory,
-                                     config->http_spec);
-
+                                     config->http_ops);
 
         return fde_safe_pop_context(this_error_context, ectx);   // <-- normal exit
     }

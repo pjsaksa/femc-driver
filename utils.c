@@ -30,15 +30,25 @@ enum { UNIX_PATH_MAX = 108 };
 
 fdu_memory_area init_memory_area(unsigned char* begin, const uint32_t size)
 {
-    return (fdu_memory_area){begin, begin+size};
+    if (size > 0) {
+        return (fdu_memory_area){begin, begin + size};
+    }
+    else {
+        return (fdu_memory_area){0, 0};
+    }
 }
 
 fdu_memory_area init_memory_area_cont(unsigned char** beginp, const uint32_t size)
 {
-    unsigned char* const begin = *beginp;
-    unsigned char* const end   = (*beginp) += size;
+    if (size > 0) {
+        unsigned char* const begin = *beginp;
+        unsigned char* const end   = (*beginp) += size;
 
-    return (fdu_memory_area){begin, end};
+        return (fdu_memory_area){begin, end};
+    }
+    else {
+        return (fdu_memory_area){0, 0};
+    }
 }
 
 /*------------------------------------------------------------

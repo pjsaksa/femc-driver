@@ -19,10 +19,8 @@ enum { this_error_context = fdu_context_http };
 //
 
 void fdu_init_http_request_parser(fdu_http_request_parser_t* parser,
-                                  void* context,
                                   const fdu_http_ops_t* http_ops)
 {
-    parser->context  = context;
     parser->http_ops = http_ops;
 
     fdu_clear_http_request_parser(parser);
@@ -43,50 +41,38 @@ void fdu_clear_http_request_parser(fdu_http_request_parser_t* parser)
 // ------------------------------------------------------------
 
 static void convert_to_lowercase(unsigned char* ptr,
-                                 const unsigned char* const end)
+                                 const unsigned char *const end)
 {
     for (;
          ptr < end;
          ++ptr)
     {
-        if (*ptr < 'A') {
-            continue;
-        }
-        else if (*ptr <= 'Z') {
-            *ptr += 'a' - 'A';
-        }
-        else if (*ptr < 192
-                 || *ptr == 215)
-        {
-            continue;
-        }
-        else if (*ptr <= 222) {
-            *ptr += 224 - 192;
-        }
+        *ptr = tolower(*ptr);
     }
 }
 
 static void strip_ws_start(unsigned char** start,
-                           const unsigned char* const end)
+                           const unsigned char *const end)
 {
     while (*start < end
            && isspace(**start))
     {
-        ++*start;
+        ++ *start;
     }
 }
 
-static void strip_ws_end(const unsigned char* const start,
+static void strip_ws_end(const unsigned char *const start,
                          unsigned char** end)
 {
     while (start < *end
            && isspace(*(*end - 1)))
     {
-        --*end;
+        -- *end;
     }
 }
 
-static void strip_ws_both(unsigned char** start, unsigned char** end)
+static void strip_ws_both(unsigned char** start,
+                          unsigned char** end)
 {
     strip_ws_end(*start, end);
     strip_ws_start(start, *end);
@@ -184,7 +170,7 @@ static bool fdu_http_parse_header(fdu_http_request_parser_t* parser,
                 break;
             }
 
-            unsigned int ct_size = endOfContent-startOfContent;
+            unsigned int ct_size = endOfContent - startOfContent;
             if (ct_size >= ContentTypeSize)
                 ct_size = ContentTypeSize - 1;
 
@@ -193,13 +179,10 @@ static bool fdu_http_parse_header(fdu_http_request_parser_t* parser,
         break;
     }
 
-    if (parser->http_ops->parse_header
-        && !parser->http_ops->parse_header(parser->context, startOfName, startOfContent))
-    {
-        return false;
-    }
-
-    return true;
+    return !parser->http_ops->parse_header
+        || parser->http_ops->parse_header(parser->http_ops->context,
+                                          startOfName,
+                                          startOfContent);
 }
 
 // ------------------------------------------------------------
@@ -265,14 +248,8 @@ bool fdu_http_parse_request(fdu_http_request_parser_t* parser,
                 return false;
             }
 
-            if (parser->http_ops->parse_url
-                && !parser->http_ops->parse_url(parser->context,
-                                                parser->message_state.method,
-                                                first_space + 1,
-                                                second_space))
-            {
-                return false;
-            }
+            const unsigned char *const url_start = first_space + 1;
+            const unsigned char *const url_end   = second_space;
 
             if (eol - (second_space + 1) != 8) {
                 fde_push_http_error("Corrupted HTTP version", 400);
@@ -282,29 +259,25 @@ bool fdu_http_parse_request(fdu_http_request_parser_t* parser,
             if (memcmp(second_space + 1, "HTTP/1.0", 8) == 0)
             {
                 parser->message_state.version = fdu_http_version_1_0;
-
-                if (parser->http_ops->parse_version
-                    && !parser->http_ops->parse_version(parser->context, fdu_http_version_1_0))
-                {
-                    return false;
-                }
-
                 parser->message_state.closing = true;
             }
             else if (memcmp(second_space + 1, "HTTP/1.1", 8) == 0)
             {
                 parser->message_state.version = fdu_http_version_1_1;
-
-                if (parser->http_ops->parse_version
-                    && !parser->http_ops->parse_version(parser->context, fdu_http_version_1_1))
-                {
-                    return false;
-                }
-
                 parser->message_state.closing = false;
             }
             else {
                 fde_push_http_error("HTTP version not supported", 505);
+                return false;
+            }
+
+            if (parser->http_ops->parse_url
+                && !parser->http_ops->parse_url(parser->http_ops->context,
+                                                parser->message_state.method,
+                                                parser->message_state.version,
+                                                url_start,
+                                                url_end))
+            {
                 return false;
             }
         }
@@ -361,7 +334,7 @@ bool fdu_http_parse_request(fdu_http_request_parser_t* parser,
 
     case fdu_http_progress_content_not_read:
         if (!parser->message_state.content_length) {
-            parser->parser_state.progress = fdu_http_progress_done;
+            parser->parser_state.progress = fdu_http_progress_reading_content;
         }
         else if (parser->message_state.content_length > MaxContentLength) {
             fde_push_http_error("Too long content", 413);
@@ -375,24 +348,19 @@ bool fdu_http_parse_request(fdu_http_request_parser_t* parser,
         //fallthrough
 
     case fdu_http_progress_reading_content:
-        {
-
-
-#if 1
-
-
-            /* Let's just dump all the content to
-             * parser->http_ops->parse_content() for now. We need to get things
-             * moving in other areas, then worry about POST-parameters.
-             */
-
+        if (!parser->message_state.content_length) {
+            parser->parser_state.progress = fdu_http_progress_done;
+        }
+        else {
             uint32_t bytes_missing = parser->message_state.content_length - parser->parser_state.content_loaded;
 
             if (bytes_missing > (uint32_t)(*end - *start))
                 bytes_missing = *end - *start;
 
             if (parser->http_ops->parse_content
-                && !parser->http_ops->parse_content(parser->context, *start, *start + bytes_missing))
+                && !parser->http_ops->parse_content(parser->http_ops->context,
+                                                    *start,
+                                                    *start + bytes_missing))
             {
                 return false;
             }
@@ -402,22 +370,6 @@ bool fdu_http_parse_request(fdu_http_request_parser_t* parser,
 
             if (parser->parser_state.content_loaded == parser->message_state.content_length)
                 parser->parser_state.progress = fdu_http_progress_done;
-
-
-#else
-
-
-            const bool parsing = (parser->message_state.method == fdu_http_method_post
-                                  && strcmp((const char*)parser->message_state.content_type,
-                                            "application/x-www-form-urlencoded") == 0);
-
-            if (parsing) {
-
-            }
-            else {
-
-            }
-#endif
         }
 
         if (parser->parser_state.progress != fdu_http_progress_done)

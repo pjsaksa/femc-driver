@@ -5,13 +5,9 @@
 
 #pragma once
 
-#include "../../utils.h"
+#include "../../utils.fwd.h"
 
 #include <stdbool.h>
-
-//typedef bool (*fdu_bufio_notify_func)(fdu_bufio_buffer*, void* context);
-//typedef void (*fdu_bufio_close_func)(fdu_bufio_buffer*, void* context, int fd, int error);
-
 
 bool fda_site_parser_client_got_input(fdu_bufio_buffer* input,
                                       void* connection);

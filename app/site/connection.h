@@ -26,7 +26,4 @@ typedef struct {
 
     fdu_http_request_parser_t parser;
     fdu_memory_area request_memory;
-
-    fdu_bufio_buffer* worker_input;
-    fdu_bufio_buffer* worker_output;
 } fda_site_connection;

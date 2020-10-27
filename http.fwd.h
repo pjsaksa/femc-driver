@@ -27,4 +27,4 @@ typedef enum {
     fdu_http_version_1_1,
 } fdu_http_version_t;
 
-typedef struct fdu_http_ops_t_ fdu_http_ops_t;
+typedef struct fdu_http_ops_t_s fdu_http_ops_t;

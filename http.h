@@ -14,8 +14,8 @@
 //
 
 typedef struct {
-    fdu_http_parser_progress_t  progress;
-    uint32_t                    content_loaded;
+    fdu_http_parser_progress_t progress;
+    uint32_t                   content_loaded;
 } fdu_http_parser_state_t;
 
 typedef struct {
@@ -30,26 +30,26 @@ typedef struct {
 
 typedef bool (*fdu_http_parse_request_url_func)(void* context,
                                                 fdu_http_method_t method,
+                                                fdu_http_version_t version,
                                                 const unsigned char* start,
                                                 const unsigned char* end);
-typedef bool (*fdu_http_parse_request_version_func)(void* context,
-                                                    fdu_http_version_t version);
 typedef bool (*fdu_http_parse_request_header_func)(void* context,
                                                    unsigned char* start,
                                                    unsigned char* end);
 typedef bool (*fdu_http_parse_request_content_func)(void* context,
                                                     unsigned char* start,
                                                     unsigned char* end);
+typedef bool (*fdu_http_handle_request_func)(void* context);
 
-struct fdu_http_ops_t_ {
-    fdu_http_parse_request_url_func     parse_url;
-    fdu_http_parse_request_version_func parse_version;
-    fdu_http_parse_request_header_func  parse_header;
+struct fdu_http_ops_t_s {
+    void *const                         context;
+    fdu_http_handle_request_func        handle_request;
     fdu_http_parse_request_content_func parse_content;
+    fdu_http_parse_request_header_func  parse_header;
+    fdu_http_parse_request_url_func     parse_url;
 };
 
 typedef struct {
-    void* context;
     const fdu_http_ops_t* http_ops;
     //
     fdu_http_parser_state_t  parser_state;
@@ -58,10 +58,9 @@ typedef struct {
 
 //
 
-void fdu_clear_http_request_parser(fdu_http_request_parser_t*);
 void fdu_init_http_request_parser(fdu_http_request_parser_t*,
-                                  void* context,
                                   const fdu_http_ops_t* http_ops);
+void fdu_clear_http_request_parser(fdu_http_request_parser_t*);
 
 // request
 

@@ -5,8 +5,13 @@
 
 #pragma once
 
-#include "config.h"
+#include "../../http.fwd.h"
 
 #include <stdbool.h>
+
+typedef struct {
+    unsigned short port;
+    const fdu_http_ops_t *const http_ops;
+} fda_site_config;
 
 bool site_start(const fda_site_config *);

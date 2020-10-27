@@ -23,19 +23,6 @@ enum {
 
 //
 
-/* 1. data -> bufio
-   2. send to http-parser
-   3. when finished, send request to controller
-   4. controller finds the correct host & worker
-   5. for each host, requests are handled one at a time
-   6. worker returns a result-record
-   7. result record is sent to host's view-handler
-   8. view-handler returns a pile of data (to the controller)
-   9. the controller calls given callback with the pile of data
-*/
-
-// ------------------------------------------------------------
-
 static void free_connection(fda_site_connection* connection)
 {
     const int fd = connection->client_output->fd;
@@ -143,7 +130,9 @@ bool fda_site_parser_client_got_input(fdu_bufio_buffer* input,
         return fde_safe_pop_context(this_error_context, ectx)
             && stay_open;
     }
-    else return false;
+    else {
+        return false;
+    }
 
     return fde_safe_pop_context(this_error_context, ectx);
 }

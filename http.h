@@ -34,19 +34,19 @@ typedef bool (*fdu_http_parse_request_url_func)(void* context,
                                                 const unsigned char* start,
                                                 const unsigned char* end);
 typedef bool (*fdu_http_parse_request_header_func)(void* context,
-                                                   unsigned char* start,
-                                                   unsigned char* end);
+                                                   const unsigned char* start,
+                                                   const unsigned char* end);
 typedef bool (*fdu_http_parse_request_content_func)(void* context,
-                                                    unsigned char* start,
-                                                    unsigned char* end);
+                                                    const unsigned char* start,
+                                                    const unsigned char* end);
 typedef bool (*fdu_http_handle_request_func)(void* context);
 
 struct fdu_http_ops_t_s {
     void *const                         context;
-    fdu_http_handle_request_func        handle_request;
-    fdu_http_parse_request_content_func parse_content;
-    fdu_http_parse_request_header_func  parse_header;
     fdu_http_parse_request_url_func     parse_url;
+    fdu_http_parse_request_header_func  parse_header;
+    fdu_http_parse_request_content_func parse_content;
+    fdu_http_handle_request_func        handle_request;
 };
 
 typedef struct {

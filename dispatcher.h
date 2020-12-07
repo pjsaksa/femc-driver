@@ -19,6 +19,8 @@ extern FILE* fdd_logfile;
 
 typedef int fdd_context_id_t;
 typedef uint64_t fdd_msec_t;
+typedef uint32_t fdd_timer_handle_t;
+
 typedef bool (*fdd_notify_func)(void*, int);
 
 typedef struct {
@@ -36,7 +38,18 @@ bool fdd_add_output(int fd, fdd_service_output* service);
 bool fdd_remove_input(int fd);
 bool fdd_remove_output(int fd);
 
-bool fdd_add_timer(fdd_notify_func, void* context, fdd_context_id_t id, fdd_msec_t msec, fdd_msec_t recurring);
+bool fdd_add_timer(fdd_notify_func, void* context,
+                   fdd_context_id_t id,
+                   fdd_msec_t msec,
+                   fdd_msec_t recurring);
+
+bool fdd_add_timer_handle(fdd_notify_func,
+                          void* context,
+                          fdd_context_id_t id,
+                          fdd_msec_t msec,
+                          fdd_msec_t recurring,
+                          fdd_timer_handle_t handle);
+void fdd_cancel_timer(fdd_timer_handle_t handle);
 
 // ------------------------------------------------------------
 

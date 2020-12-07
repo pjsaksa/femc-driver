@@ -18,12 +18,14 @@ typedef struct {
 // -----
 
 struct fdd_timer_node {
-    unsigned int id;
     struct timespec expires;
     fdd_msec_t recurring;
 
-    void* context;
     fdd_notify_func notify;
+    void* context;
+    unsigned int id;
+
+    uint32_t handle;
 
     struct fdd_timer_node* next;
 };

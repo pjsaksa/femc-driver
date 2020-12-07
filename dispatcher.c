@@ -201,7 +201,9 @@ static void timer_free_node(struct fdd_timer_node* tbd)
 static struct fdd_timer_node* timer_alloc_node(fdd_notify_func notify,
                                                void* context,
                                                fdd_context_id_t id,
-                                               fdd_msec_t recurring)
+                                               fdd_msec_t msec,
+                                               fdd_msec_t recurring,
+                                               fdd_timer_handle_t handle)
 {
     if (!free_timer_nodes)
     {
@@ -229,35 +231,43 @@ static struct fdd_timer_node* timer_alloc_node(fdd_notify_func notify,
     struct fdd_timer_node* node = free_timer_nodes;
     free_timer_nodes = free_timer_nodes->next;
 
-    node->next      = 0;
+    //
+
+    if (!get_expiration_time(&node->expires, msec)) {
+        timer_free_node(node);
+        return NULL;
+    }
+
+    node->recurring = recurring;
     node->notify    = notify;
     node->context   = context;
     node->id        = id;
-    node->recurring = recurring;
+    node->handle    = handle;
+    node->next      = 0;
 
     return node;
 }
 
 // ------------------------------------------------------------
 
-static struct fdd_timer_node* dispatcher_timers = 0;
+static struct fdd_timer_node* f_dispatcher_timers = 0;
 
 static void fdd_add_timer_node(struct fdd_timer_node* new_node)
 {
     // check if the new node should be inserted as first
 
-    if (!dispatcher_timers
-        || expiration_compare(&new_node->expires, &dispatcher_timers->expires) < 0)
+    if (!f_dispatcher_timers
+        || expiration_compare(&new_node->expires, &f_dispatcher_timers->expires) < 0)
     {
-        new_node->next = dispatcher_timers;
-        dispatcher_timers = new_node;
+        new_node->next = f_dispatcher_timers;
+        f_dispatcher_timers = new_node;
         return;
     }
 
-    // iterate dispatcher_timers until correct place for insertion is found
+    // iterate f_dispatcher_timers until correct place for insertion is found
 
     {
-        struct fdd_timer_node* ptr = dispatcher_timers;
+        struct fdd_timer_node* ptr = f_dispatcher_timers;
         while (ptr->next) {
             if (expiration_compare(&new_node->expires, &ptr->next->expires) < 0)
             {
@@ -282,8 +292,23 @@ bool fdd_add_timer(fdd_notify_func notify,
                    fdd_msec_t msec,
                    fdd_msec_t recurring)
 {
+    return fdd_add_timer_handle(notify,
+                                context,
+                                id,
+                                msec,
+                                recurring,
+                                0);
+}
+
+bool fdd_add_timer_handle(fdd_notify_func notify,
+                          void* context,
+                          fdd_context_id_t id,
+                          fdd_msec_t msec,
+                          fdd_msec_t recurring,
+                          fdd_timer_handle_t handle)
+{
 #ifdef FD_DEBUG
-    if (!notify) {
+    if (notify == NULL) {
         fde_push_context(this_error_context);
         fde_push_consistency_failure_id(fde_consistency_invalid_arguments);
         return false;
@@ -292,19 +317,50 @@ bool fdd_add_timer(fdd_notify_func notify,
 
     // alloc and init timer node
 
-    struct fdd_timer_node* new_node = timer_alloc_node(notify, context, id, recurring);
+    struct fdd_timer_node* new_node = timer_alloc_node(notify, context, id, msec, recurring, handle);
 
-    if (!new_node) {
+    if (new_node == NULL) {
         fde_push_context(this_error_context);
         fde_push_resource_failure_id(fde_resource_memory_allocation);
         return false;
     }
 
-    if (!get_expiration_time(&new_node->expires, msec))
-        return false;
-
     fdd_add_timer_node(new_node);
     return true;
+}
+
+void fdd_cancel_timer(fdd_timer_handle_t handle)
+{
+    if (handle == 0) {
+        return;
+    }
+
+    while (f_dispatcher_timers != NULL
+           && f_dispatcher_timers->handle == handle)
+    {
+        struct fdd_timer_node* node = f_dispatcher_timers;
+        f_dispatcher_timers = f_dispatcher_timers->next;
+        timer_free_node(node);
+    }
+
+    if (f_dispatcher_timers == NULL) {
+        return;
+    }
+
+    struct fdd_timer_node* node = f_dispatcher_timers;
+
+    while (node->next != NULL)
+    {
+        if (node->next->handle == handle)
+        {
+            struct fdd_timer_node* old = node->next;
+            node->next = node->next->next;
+            timer_free_node(old);
+        }
+        else {
+            node = node->next;
+        }
+    }
 }
 
 // ------------------------------------------------------------
@@ -347,20 +403,20 @@ bool fdd_main(fdd_msec_t max_msec)
     running = true;
 
     while (running
-           && (dispatcher_timers
+           && (f_dispatcher_timers
                || !fdd_impl_api->empty()))
     {
         fdd_msec_t msec = FDD_INFINITE;
 
-        if (dispatcher_timers)
+        if (f_dispatcher_timers)
         {
-            if (!expiration_msec(&dispatcher_timers->expires, &msec))
+            if (!expiration_msec(&f_dispatcher_timers->expires, &msec))
                 return false;
 
             if (!msec)
             {
-                struct fdd_timer_node* tmr = dispatcher_timers;
-                dispatcher_timers = dispatcher_timers->next;
+                struct fdd_timer_node* tmr = f_dispatcher_timers;
+                f_dispatcher_timers = f_dispatcher_timers->next;
 
                 bool timer_ok = tmr->notify(tmr->context, tmr->id);
 

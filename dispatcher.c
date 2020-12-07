@@ -94,7 +94,7 @@ static bool fdd_logfile_reopen(void)
 
 // ------------------------------------------------------------
 
-static bool get_expiration_time(struct timespec* tv, fdd_msec_t msec)
+bool get_expiration_time(struct timespec* tv, fdd_msec_t msec)
 {
 #ifdef FD_DEBUG
     if (!tv) {
@@ -123,15 +123,14 @@ static bool get_expiration_time(struct timespec* tv, fdd_msec_t msec)
     return true;
 }
 
-// (a > b) ? (value > 0)
-static int expiration_compare(struct timespec* a, struct timespec* b)
+int expiration_compare(struct timespec* a, struct timespec* b)
 {
     return (a->tv_sec != b->tv_sec)
         ? (a->tv_sec - b->tv_sec)
         : (a->tv_nsec - b->tv_nsec);
 }
 
-static bool expiration_msec(struct timespec* tv, fdd_msec_t* msec)
+bool expiration_msec(struct timespec* tv, fdd_msec_t* msec)
 {
 #ifdef FD_DEBUG
     if (!tv || !msec) {
@@ -159,7 +158,7 @@ static bool expiration_msec(struct timespec* tv, fdd_msec_t* msec)
     return true;
 }
 
-static bool add_expiration_msec(struct timespec* tv, fdd_msec_t msec)
+bool add_expiration_msec(struct timespec* tv, fdd_msec_t msec)
 {
 #ifdef FD_DEBUG
     if (!tv || !msec) {

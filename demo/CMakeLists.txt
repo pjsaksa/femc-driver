@@ -15,6 +15,16 @@ target_compile_options(main-demo PRIVATE -O2 -Wall -Wextra -Werror)
 target_link_libraries(main-demo femc-driver)
 
 #
+# task_queue
+#
+
+add_executable(task_queue
+    task_queue.c
+)
+target_compile_options(task_queue PRIVATE -O2 -Wall -Wextra -Werror)
+target_link_libraries(task_queue femc-driver)
+
+#
 # endian
 #
 

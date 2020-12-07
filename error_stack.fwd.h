@@ -22,6 +22,7 @@ typedef enum {
     fdu_context_s11n,
     fdu_context_safe,
     fdu_context_signalfd,
+    fdu_context_task_queue,
     //
     fda_babysitter,
     fda_site_main,
@@ -32,6 +33,7 @@ typedef enum {
     fd_demo_context_echo2,
     fd_demo_context_echo3,
     fd_demo_context_route,
+    fd_demo_context_task_queue,
     fd_demo_context_timer1,
     //
     fdb_context_base,
@@ -86,6 +88,7 @@ enum {
 
     fde_consistency_io_handler_corrupted,       // dispatcher
     fde_consistency_kill_recurring_timer,
+    fde_consistency_task_queue_corrupted,
 
     //
     fde_first_local_consistency_id,

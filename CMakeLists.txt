@@ -18,9 +18,11 @@ add_library(femc-driver STATIC
     error_stack.c
     http.c
     s11n.c
+    task_queue.c
     utils.c
 )
 target_compile_options(femc-driver PRIVATE -O2 -Wall -Wextra -Werror)
+target_compile_definitions(femc-driver PUBLIC -DFD_DEBUG)
 set_source_files_properties(dispatcher_zmq.c
     PROPERTIES
         INCLUDE_DIRECTORIES "???"

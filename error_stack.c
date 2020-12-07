@@ -272,17 +272,19 @@ const char* fde_context_id_to_name(fde_context_id_t context)
     case fdu_context_s11n:        return "driver s11n";
     case fdu_context_safe:        return "utils safe functions";
     case fdu_context_signalfd:    return "utils signalfd";
+    case fdu_context_task_queue:  return "utils task_queue";
         //
     case fda_babysitter:          return "app babysitter";
     case fda_site_main:           return "app site main";
     case fda_site_parser:         return "app site parser";
         //
-    case fd_demo_context_date:    return "demo date";
-    case fd_demo_context_echo1:   return "demo echo1";
-    case fd_demo_context_echo2:   return "demo echo2";
-    case fd_demo_context_echo3:   return "demo echo3";
-    case fd_demo_context_route:   return "demo route";
-    case fd_demo_context_timer1:  return "demo timer1";
+    case fd_demo_context_date:       return "demo date";
+    case fd_demo_context_echo1:      return "demo echo1";
+    case fd_demo_context_echo2:      return "demo echo2";
+    case fd_demo_context_echo3:      return "demo echo3";
+    case fd_demo_context_route:      return "demo route";
+    case fd_demo_context_task_queue: return "demo task_queue";
+    case fd_demo_context_timer1:     return "demo timer1";
         //
     case fdb_context_base:              return "DBMS base";
     case fdb_context_s11n:              return "DBMS s11n";

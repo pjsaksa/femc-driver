@@ -328,8 +328,10 @@ static bool ZMQ_add_input(int fd,
     const bool exists = (entry != NULL);
 
     if (!exists) {
-        if (f_unused_entries == NULL) {
-            allocate_new_entries();
+        if (f_unused_entries == NULL
+            && !allocate_new_entries())
+        {
+            return false;
         }
 
         // get entry from f_unused_entries
@@ -396,8 +398,10 @@ static bool ZMQ_add_output(int fd,
     const bool exists = (entry != NULL);
 
     if (!exists) {
-        if (f_unused_entries == NULL) {
-            allocate_new_entries();
+        if (f_unused_entries == NULL
+            && !allocate_new_entries())
+        {
+            return false;
         }
 
         // get entry from f_unused_entries
@@ -585,8 +589,10 @@ bool fdx_add_input_zmq(void* zmq_socket,
     const bool exists = (entry != NULL);
 
     if (!exists) {
-        if (f_unused_entries == NULL) {
-            allocate_new_entries();
+        if (f_unused_entries == NULL
+            && !allocate_new_entries())
+        {
+            return false;
         }
 
         // get entry from f_unused_entries
@@ -653,8 +659,10 @@ bool fdx_add_output_zmq(void* zmq_socket,
     const bool exists = (entry != NULL);
 
     if (!exists) {
-        if (f_unused_entries == NULL) {
-            allocate_new_entries();
+        if (f_unused_entries == NULL
+            && !allocate_new_entries())
+        {
+            return false;
         }
 
         // get entry from f_unused_entries

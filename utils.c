@@ -1144,8 +1144,8 @@ bool fdu_close_auto_accept(aac_service_t* service)
     //
 
     fdd_remove_input(service->server_fd);
-    free(service);
     fdu_safe_close(service->server_fd);
+    free(service);
 
     return fde_safe_pop_context(fdu_context_aac, ectx);
 }
